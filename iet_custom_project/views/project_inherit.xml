@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+        <record id="view_project_edit_form_inherit" model="ir.ui.view">
+            <field name="name">project.edit.project.inherit</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="industry_id"/>
+                </xpath>
+                <xpath expr="//page[@name='settings']" position="after">
+                    <page name="attachments" string="Attachments">
+                        <notebook>
+        <page string="Training">
+            <field name="attachment_training_ids" mode="list,form">
+                <list editable="bottom">
+                    <field name="name"/>
+                    <field name="datas" filename="name"/>
+                </list>
+            </field>
+        </page>
+        <page string="Stakeholder">
+            <field name="attachment_stakeholder_ids" mode="list,form">
+                <list editable="bottom">
+                    <field name="name"/>
+                    <field name="datas" filename="name"/>
+                </list>
+            </field>
+        </page>
+        <page string="UAT">
+            <field name="attachment_uat_ids" mode="list,form">
+                <list editable="bottom">
+                    <field name="name"/>
+                    <field name="datas" filename="name"/>
+                </list>
+            </field>
+        </page>
+        <page string="BRD">
+            <field name="attachment_brd_ids" mode="list,form">
+                <list editable="bottom">
+                    <field name="name"/>
+                    <field name="datas" filename="name"/>
+                </list>
+            </field>
+        </page>
+        <page string="Plan">
+            <field name="attachment_plan_ids" mode="list,form">
+                <list editable="bottom">
+                    <field name="name"/>
+                    <field name="datas" filename="name"/>
+                </list>
+            </field>
+        </page>
+        <page string="Closing">
+            <field name="attachment_closing_ids" mode="list,form">
+                <list editable="bottom">
+                    <field name="name"/>
+                    <field name="datas" filename="name"/>
+                </list>
+            </field>
+        </page>
+    </notebook>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

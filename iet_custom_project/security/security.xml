@@ -1,0 +1,6 @@
+<odoo>
+    <record id="group_project_stage_manager" model="res.groups">
+        <field name="name">Project Stage Manager</field>
+
+    </record>
+</odoo>

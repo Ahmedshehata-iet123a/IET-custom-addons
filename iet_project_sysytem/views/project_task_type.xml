@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_project_task_type_form_inherit_iet_plan" model="ir.ui.view">
+        <field name="name">view_project_task_type_form_inherit_iet_plan</field>
+        <field name="model">project.task.type</field>
+        <field name="inherit_id" ref="project.task_type_edit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sequence']" position="after">
+                <field name="generate_tasks"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
