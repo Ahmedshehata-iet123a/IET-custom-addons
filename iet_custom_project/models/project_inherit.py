@@ -99,18 +99,13 @@ class Project(models.Model):
     )
 
     def write(self, vals):
-        # تحقق من وجود تغيير في المرحلة
         if 'stage_id' in vals:
-            # الحصول على المرحلة الجديدة
             new_stage = self.env['project.project.stage'].browse(vals['stage_id'])
 
-            # التحقق من إذا كان المستخدم ينتمي لمجموعة "Project Stage Manager"
             if 'Project Stage Manager' not in self.env.user.groups_id.mapped('name'):
                 for rec in self:
-                    # قائمة الحقول المفقودة
                     missing_fields = []
 
-                    # التحقق من الحقول المفقودة بناءً على المرحلة
                     if new_stage.training_document and not rec.attachment_training_ids:
                         missing_fields.append("Training Document")
                     if new_stage.stakeholder and not rec.attachment_stakeholder_ids:
@@ -124,13 +119,11 @@ class Project(models.Model):
                     if new_stage.project_closing and not rec.attachment_closing_ids:
                         missing_fields.append("Project Closing")
 
-                    # إذا كانت هناك ملفات مفقودة، يتم إظهار رسالة خطأ
                     if missing_fields:
                         raise UserError(_(
                             "You cannot move to stage '%s' without uploading the required attachments:\n- %s"
                             % (new_stage.name, "\n- ".join(missing_fields))
                         ))
 
-        # متابعة العملية إذا كانت المرفقات موجودة
         return super(Project, self).write(vals)
 
