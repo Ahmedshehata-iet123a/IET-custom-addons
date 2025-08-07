@@ -19,7 +19,6 @@
         </field>
     </record>
 
-    <!-- list View -->
     <record id="view_project_team_list" model="ir.ui.view">
         <field name="name">project.team.list</field>
         <field name="model">project.team</field>
@@ -31,7 +30,6 @@
         </field>
     </record>
 
-    <!-- Action -->
     <record id="action_project_team" model="ir.actions.act_window">
         <field name="name">Teams</field>
         <field name="res_model">project.team</field>
@@ -43,7 +41,6 @@
         </field>
     </record>
 
-    <!-- Submenu under Configuration -->
     <menuitem
             id="menu_project_team"
             name="Teams"
