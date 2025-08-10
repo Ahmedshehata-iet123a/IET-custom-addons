@@ -19,6 +19,7 @@ class Project(models.Model):
     _inherit = 'project.project'
 
     industry_id = fields.Many2one('project.industry', string='Industry')
+    team_id = fields.Many2one('project.team',string='Team')
 
     attachment_training_ids = fields.One2many(
         'ir.attachment', 'res_id',

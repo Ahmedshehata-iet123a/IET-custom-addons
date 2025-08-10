@@ -39,6 +39,7 @@ class Project(models.Model):
                         'project_id': project.id,
                         'date_start': plan_line.planned_start_date,
                         'end_date': plan_line.planned_end_date,
+                        'team_name': self.team_id.name,
                         'stage_id': task_type_ids[0].id,
                     }
                     _logger.info("Creating task with vals: %s", vals)

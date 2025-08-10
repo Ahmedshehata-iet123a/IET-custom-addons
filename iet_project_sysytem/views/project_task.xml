@@ -10,6 +10,9 @@
                        options='{"end_date_field": "end_date", "always_range": true}' required="1"/>
                 <field name="end_date" invisible="1"/>
             </xpath>
+            <xpath expr="//field[@name='allocated_hours']" position="before">
+                <field name="team_name" readonly="1"/>
+            </xpath>
         </field>
     </record>
 </odoo>

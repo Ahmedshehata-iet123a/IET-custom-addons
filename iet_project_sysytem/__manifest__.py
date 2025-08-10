@@ -1,7 +1,7 @@
 {
     'name': 'IET Project System',
     'version': '1.0',
-    'depends': ['project'],
+    'depends': ['project','iet_custom_project'],
      "website": "https://intelligent-experts.com/en/home/",
     'auther': 'IET - SalehElSrief',
     'category': 'Project',
