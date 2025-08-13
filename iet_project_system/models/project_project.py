@@ -15,35 +15,65 @@ class Project(models.Model):
         'project_id',
         string='Project Plan Lines'
     )
+    hide_button = fields.Boolean(string="checkbox")
 
     def action_generate_tasks(self):
         Task = self.env['project.task']
         for project in self:
+            project.hide_button = True
             task_type_ids = self.env['project.task.type'].search([
                 ('generate_tasks', '=', True),
                 ('project_ids', 'in', [project.id])
             ])
-
             if not task_type_ids:
                 _logger.warning("No task types found for project %s with generate_tasks=True", project.name)
                 continue
 
             for plan_line in project.project_plan_line_ids.filtered(lambda l: not l.display_type):
-                existing_task = Task.search([
-                    ('project_id', '=', project.id),
-                    ('name', '=', plan_line.name),
-                ], limit=1)
-                if not existing_task:
-                    vals = {
-                        'name': plan_line.name,
-                        'project_id': project.id,
-                        'date_start': plan_line.planned_start_date,
-                        'end_date': plan_line.planned_end_date,
-                        'team_name': self.team_id.name,
-                        'stage_id': task_type_ids[0].id,
-                    }
-                    _logger.info("Creating task with vals: %s", vals)
-                    Task.create(vals)
+                vals = {
+                    'name': plan_line.name,
+                    'project_id': project.id,
+                    'date_start': plan_line.planned_start_date,
+                    'end_date': plan_line.planned_end_date,
+                    'team_name': project.team_id.name,
+                    'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
+                    'stage_id': task_type_ids[0].id,
+                }
+                _logger.info("Creating task with vals: %s", vals)
+                Task.create(vals)
+
+    def action_update_tasks(self):
+        Task = self.env['project.task']
+        for project in self:
+            project.hide_button = True
+            task_type_ids = self.env['project.task.type'].search([
+                ('generate_tasks', '=', True),
+                ('project_ids', 'in', [project.id])
+            ])
+            if not task_type_ids:
+                _logger.warning("No task types found for project %s with generate_tasks=True", project.name)
+                continue
+
+            for plan_line in project.project_plan_line_ids.filtered(lambda l: not l.display_type):
+                vals = {
+                    'name': plan_line.name,
+                    'project_id': project.id,
+                    'date_start': plan_line.planned_start_date,
+                    'end_date': plan_line.planned_end_date,
+                    'team_name': project.team_id.name,
+                    'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
+                    'stage_id': task_type_ids[0].id,
+                    'date_deadline': plan_line.planned_end_date or fields.Date.today(),
+                    'allocated_hours': 1,
+                }
+
+                if plan_line.task_id:
+                    _logger.info("Updating task %s with vals: %s", plan_line.task_id.id, vals)
+                    plan_line.task_id.write(vals)
+                else:
+                    _logger.info("Creating new task with vals: %s", vals)
+                    task = Task.create(vals)
+                    plan_line.task_id = task
 
     def action_print_project_plan(self):
         for project in self:

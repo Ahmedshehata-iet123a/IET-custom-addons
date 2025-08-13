@@ -17,6 +17,7 @@ class ProjectPlanLine(models.Model):
     display_type = fields.Selection([
         ('line_section', "Section"),
         ('line_note', "Note")], default=False, help="Technical field for UX purpose.")
+    task_id = fields.Many2one('project.task', string="Linked Task")
 
     @api.model
     def create(self, vals):

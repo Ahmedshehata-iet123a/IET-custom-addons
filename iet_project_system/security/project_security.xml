@@ -1,0 +1,8 @@
+<odoo>
+    <record id="iet_task_server" model="ir.rule">
+        <field name="name">See Tasks Assiegned</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="domain_force">[('user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('project.group_project_user'))]"/>
+    </record>
+</odoo>

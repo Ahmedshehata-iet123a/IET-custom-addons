@@ -29,3 +29,26 @@ class ProjectTask(models.Model):
                         )
 
         return super().write(vals)
+
+    def action_add_timesheet(self):
+        """Open timesheet creation form for this task, filtered by current employee"""
+        self.ensure_one()
+        employee = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
+        return {
+            'name': 'Add Timesheet',
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.analytic.line',
+            'view_mode': 'list',
+            'target': 'new',  # لو عايز popup خليها 'new'
+            'domain': [('employee_id', '=', employee.id)],
+            'context': {
+                'default_task_id': self.id,
+                'default_project_id': self.project_id.id,
+                'default_employee_id': employee.id,
+            }
+        }
+
+    def _get_tasks_domain(self):
+        if self.env.user.has_group("base.group_system") or self.env.user.has_group("project.group_project_manager"):
+            return []
+        return [('user_ids', 'in', self.env.uid)]

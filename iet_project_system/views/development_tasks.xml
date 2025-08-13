@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_Development_tasks_list" model="ir.ui.view">
+        <field name="name">Development.tasks.list</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml">
+            <list string="Business Tasks">
+                <field name="name" string="Task Name"/>
+                <field name="project_id" string="Project"/>
+                <field name="date_deadline" string="Deadline"/>
+                <field name="user_ids" string="Team" widget="many2many_tags"/>
+                <field name="stage_id" string="Stage"/>
+                <button name="action_add_timesheet"
+                        type="object"
+                        string="Add Timesheet"
+                />
+            </list>
+        </field>
+    </record>
+
+    <record id="action_development_tasks" model="ir.actions.act_window">
+        <field name="name">Development Tasks</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_Development_tasks_list"/>
+        <field name="context">{'group_by': ['project_id']}</field>
+        <field name="domain">[('user_ids', 'in', uid)]</field>
+    </record>
+
+    <menuitem
+            id="menu_development_tasks"
+            name="Development Tasks"
+            action="action_development_tasks"
+            parent="project.menu_main_pm"
+            sequence="99"/>
+</odoo>
