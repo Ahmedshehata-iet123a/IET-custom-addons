@@ -9,3 +9,4 @@ class ProjectProjectStage(models.Model):
     brd = fields.Boolean(string="BRD")
     project_plan = fields.Boolean(string="Project Plan")
     project_closing = fields.Boolean(string="Project Closing")
+    project_scope = fields.Boolean(string="Project Closing")

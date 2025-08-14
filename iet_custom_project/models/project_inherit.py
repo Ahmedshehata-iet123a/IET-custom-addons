@@ -6,6 +6,7 @@ class IrAttachment(models.Model):
     _inherit = 'ir.attachment'
 
     document_type = fields.Selection([
+        ('project_scope', 'Project Scope'),
         ('training', 'Training Document'),
         ('stakeholder', 'Stakeholder'),
         ('uat', 'UAT'),
@@ -98,6 +99,19 @@ class Project(models.Model):
             'default_document_type': 'closing'
         }
     )
+    attachment_project_scope_ids = fields.One2many(
+        'ir.attachment', 'res_id',
+        domain=[
+            ('res_model', '=', 'project.project'),
+            ('document_type', '=', 'project_scope')
+        ],
+        string="Project Project Scope Documents",
+        context={
+            'default_res_model': 'project.project',
+            'default_document_type': 'project_scope'
+        }
+    )
+
 
     def write(self, vals):
         if 'stage_id' in vals:
@@ -119,6 +133,9 @@ class Project(models.Model):
                         missing_fields.append("Project Plan")
                     if new_stage.project_closing and not rec.attachment_closing_ids:
                         missing_fields.append("Project Closing")
+                    if new_stage.project_scope and not rec.attachment_project_scope_ids:
+                        missing_fields.append("Project Scope")
+
 
                     if missing_fields:
                         raise UserError(_(

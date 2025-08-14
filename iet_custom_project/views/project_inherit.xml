@@ -16,7 +16,15 @@
                 <xpath expr="//page[@name='settings']" position="after">
                     <page name="attachments" string="Attachments">
                         <notebook>
-                            <page string="Plan">
+                            <page string="project scope">
+                                <field name="attachment_project_scope_ids" mode="list,form">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="datas" filename="name"/>
+                                    </list>
+                                </field>
+                            </page>
+                             <page string="Plan">
                                 <field name="attachment_plan_ids" mode="list,form">
                                     <list editable="bottom">
                                         <field name="name"/>
@@ -24,6 +32,7 @@
                                     </list>
                                 </field>
                             </page>
+
                             <page string="Stakeholder">
                                 <field name="attachment_stakeholder_ids" mode="list,form">
                                     <list editable="bottom">
