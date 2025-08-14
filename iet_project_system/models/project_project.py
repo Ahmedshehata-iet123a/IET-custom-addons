@@ -63,16 +63,15 @@ class Project(models.Model):
                     'team_name': project.team_id.name,
                     'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
                     'stage_id': task_type_ids[0].id,
-                    'date_deadline': plan_line.planned_end_date or fields.Date.today(),
-                    'allocated_hours': 1,
+
                 }
 
                 if plan_line.task_id:
                     _logger.info("Updating task %s with vals: %s", plan_line.task_id.id, vals)
-                    plan_line.task_id.write(vals)
+                    plan_line.task_id.with_context(skip_stage_validation=True).write(vals)
                 else:
                     _logger.info("Creating new task with vals: %s", vals)
-                    task = Task.create(vals)
+                    task = Task.with_context(skip_stage_validation=True).create(vals)
                     plan_line.task_id = task
 
     def action_print_project_plan(self):

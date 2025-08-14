@@ -10,7 +10,7 @@ class ProjectTask(models.Model):
     end_date = fields.Datetime(string="End Date")
 
     def write(self, vals):
-        if 'stage_id' in vals:
+        if not self.env.context.get('skip_stage_validation') and 'stage_id' in vals:
             for task in self:
                 stage = self.env['project.task.type'].browse(vals['stage_id'])
 
@@ -39,7 +39,7 @@ class ProjectTask(models.Model):
             'type': 'ir.actions.act_window',
             'res_model': 'account.analytic.line',
             'view_mode': 'list',
-            'target': 'new',  # لو عايز popup خليها 'new'
+            'target': 'new',
             'domain': [('employee_id', '=', employee.id)],
             'context': {
                 'default_task_id': self.id,
@@ -47,8 +47,3 @@ class ProjectTask(models.Model):
                 'default_employee_id': employee.id,
             }
         }
-
-    def _get_tasks_domain(self):
-        if self.env.user.has_group("base.group_system") or self.env.user.has_group("project.group_project_manager"):
-            return []
-        return [('user_ids', 'in', self.env.uid)]

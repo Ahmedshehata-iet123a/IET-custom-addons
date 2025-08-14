@@ -5,12 +5,13 @@
         <field name="name">business.tasks.list</field>
         <field name="model">project.task</field>
         <field name="arch" type="xml">
-            <list string="Business Tasks">
+            <list string="Business Tasks" default_order="date_start asc">
                 <field name="name" string="Task Name"/>
                 <field name="project_id" string="Project"/>
                 <field name="date_start" string="Start Date"/>
                 <field name="end_date" string="End Date"/>
-                <field name="user_ids" string="Team" widget="many2many_tags"/>
+                <field name="team_name" string="Team"/>
+                <field name="user_ids" string="Assignee" widget="many2many_tags"/>
                 <field name="stage_id" string="Stage"/>
                 <button name="action_add_timesheet"
                         type="object"
@@ -36,5 +37,6 @@
             name="Business Tasks"
             action="action_business_tasks"
             parent="project.menu_main_pm"
-            sequence="99"/>
+            sequence="99"
+            groups="iet_project_system.group_business_team"/>
 </odoo>
