@@ -12,6 +12,7 @@ class IrAttachment(models.Model):
         ('uat', 'UAT'),
         ('brd', 'BRD'),
         ('plan', 'Project Plan'),
+        ('mom', 'MOM'),
         ('closing', 'Project Closing')
     ], string="Document Type")
 
@@ -105,10 +106,23 @@ class Project(models.Model):
             ('res_model', '=', 'project.project'),
             ('document_type', '=', 'project_scope')
         ],
-        string="Project Project Scope Documents",
+        string="Project Scope Documents",
         context={
             'default_res_model': 'project.project',
             'default_document_type': 'project_scope'
+        }
+    )
+
+    attachment_mom_ids = fields.One2many(
+        'ir.attachment', 'res_id',
+        domain=[
+            ('res_model', '=', 'project.project'),
+            ('document_type', '=', 'mom')
+        ],
+        string="Project MOM Documents",
+        context={
+            'default_res_model': 'project.project',
+            'default_document_type': 'mom'
         }
     )
 
@@ -135,6 +149,7 @@ class Project(models.Model):
                         missing_fields.append("Project Closing")
                     if new_stage.project_scope and not rec.attachment_project_scope_ids:
                         missing_fields.append("Project Scope")
+             
 
 
                     if missing_fields:
