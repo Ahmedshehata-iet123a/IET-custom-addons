@@ -28,7 +28,7 @@
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_business_tasks_list"/>
         <field name="context">{'group_by': ['project_id']}</field>
-        <field name="domain">[('user_ids', 'in', uid)]</field>
+        <field name="domain">[('user_ids', 'in', uid), ('stage_id.name', '!=', 'Done')]</field>
     </record>
 
     <!-- Menu Item for Business Tasks -->

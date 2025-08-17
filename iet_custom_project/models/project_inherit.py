@@ -149,7 +149,7 @@ class Project(models.Model):
                         missing_fields.append("Project Closing")
                     if new_stage.project_scope and not rec.attachment_project_scope_ids:
                         missing_fields.append("Project Scope")
-             
+
 
 
                     if missing_fields:
