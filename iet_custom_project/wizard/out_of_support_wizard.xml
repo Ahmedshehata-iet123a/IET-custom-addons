@@ -1,0 +1,18 @@
+<odoo>
+    <record id="view_project_out_of_support_wizard_form" model="ir.ui.view">
+        <field name="name">project.out.of.support.wizard.form</field>
+        <field name="model">project.out.of.support.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Out of Support Reason">
+                <group>
+                    <field name="reason"/>
+                    <field name="date"/>
+                </group>
+                <footer>
+                    <button name="confirm_out_of_support" type="object" string="Confirm" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

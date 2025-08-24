@@ -11,8 +11,33 @@
                 <xpath expr="//field[@name='partner_id']" position="after">
                     <field name="industry_id"/>
                     <field name="team_id"/>
+                    <field name="implementation_owner_ids" widget="many2many_tags"/>
+                    <field name="development_owner_ids" widget="many2many_tags"/>
 
                 </xpath>
+                <xpath expr="//header/button[@name='action_open_share_project_wizard']" position="after">
+                    <button name="action_set_out_of_support_stage"
+                            string="Set Out of Support"
+                            type="object"
+                            class="btn-primary"
+                            groups="project.group_project_manager"/>
+                </xpath>
+
+                <xpath expr="//field[@name='date_start']" position="after">
+                    <field name="start_project_date" string="Project Date" widget="daterange"
+                           options='{"end_date_field": "end_project_date", "always_range": "1"}'
+                           required="start_project_date or end_project_date"/>
+                    <field name="end_project_date" invisible="1" required="start_project_date"/>
+
+                    <field name="free_support_start_date" string="Free Support Date" widget="daterange"
+                           options='{"end_date_field": "free_support_end_date", "always_range": true}'/>
+                    <field name="free_support_end_date" invisible="1" required="free_support_start_date"/>
+
+                    <field name="contract_project_start_date" string="Contract Project Date" widget="daterange"
+                           options='{"end_date_field": "contract_project_end_date", "always_range": true}'/>
+                    <field name="contract_project_end_date" invisible="1" required="contract_project_start_date"/>
+                </xpath>
+
                 <xpath expr="//page[@name='settings']" position="after">
                     <page name="attachments" string="Attachments">
                         <notebook>
@@ -24,7 +49,7 @@
                                     </list>
                                 </field>
                             </page>
-                             <page string="Plan">
+                            <page string="Plan">
                                 <field name="attachment_plan_ids" mode="list,form">
                                     <list editable="bottom">
                                         <field name="name"/>
@@ -83,6 +108,21 @@
                         </notebook>
                     </page>
                 </xpath>
+
+
+                <xpath expr="//page[@name='attachments']" position="after">
+                    <page name="OutOfSupport" string="Reason Out Of Support">
+                        <field name="out_of_support_log_ids" mode="list">
+                            <list editable="bottom">
+                                <field name="reason"/>
+                                <field name="stage_name" readonly="True"/>
+                                <field name="date"/>
+                            </list>
+                        </field>
+                    </page>
+                </xpath>
+
+
             </field>
         </record>
 

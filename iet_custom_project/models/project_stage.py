@@ -10,3 +10,4 @@ class ProjectProjectStage(models.Model):
     project_plan = fields.Boolean(string="Project Plan")
     project_closing = fields.Boolean(string="Project Closing")
     project_scope = fields.Boolean(string="Project Scope")
+    out_of_support = fields.Boolean(string="Out of Support or Cancel")
