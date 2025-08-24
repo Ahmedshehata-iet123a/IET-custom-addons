@@ -5,19 +5,17 @@ from odoo import models, fields
 class OutOfSupport(models.Model):
     _name = 'out.of.support'
     _description = 'Project Out of Support Log'
-    _order = 'date desc, id desc'  # To show the latest records first
+    _order = 'date desc, id desc'
 
     reason = fields.Text(string="Reason", required=True)
     date = fields.Date(string="Out of Support Date", required=True)
 
-    # حقل الربط Many2one مع المشروع
     project_id = fields.Many2one(
         'project.project',
         string="Project",
         required=True,
-        ondelete='cascade'  # If project is deleted, delete these logs too
+        ondelete='cascade'
     )
-    # حقل لتسجيل المستخدم الذي قام بالإجراء
     user_id = fields.Many2one(
         'res.users',
         string='Responsible User',

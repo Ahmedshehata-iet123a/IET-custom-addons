@@ -194,15 +194,12 @@ class Project(models.Model):
 
     @api.constrains('stage_id')
     def _check_out_of_support_stage(self):
-        """فحص مرحلة Out of Support"""
         for record in self:
             if record.stage_id.out_of_support and not self._context.get('bypass_out_of_support_check'):
-                # البحث عن آخر سجل out.of.support لهذا المشروع
                 last_record = self.env['out.of.support'].search([
                     ('project_id', '=', record.id)
                 ], order='date desc, id desc', limit=1)
 
-                # إذا لم يكن آخر سجل يخص نفس المرحلة الحالية أو حتى لو موجود، نطلب reason جديد
                 raise UserError(_(
                     "Cannot move project '%s' to stage '%s' without providing "
                     "an out of support reason. Please use the 'Set Out of Support' "
@@ -210,7 +207,6 @@ class Project(models.Model):
                 ))
 
     def action_set_out_of_support_stage(self):
-        """Action لفتح الـ wizard وتحديث المرحلة"""
         self.ensure_one()
 
         out_of_support_stage = self.env['project.project.stage'].search([
