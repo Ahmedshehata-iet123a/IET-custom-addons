@@ -1,0 +1,24 @@
+<odoo>
+    <record id="project_invoice_form_inherit" model="ir.ui.view">
+        <field name="name">Inherit project form : Invoicing Data</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="priority">24</field>
+        <field name="arch" type="xml">
+            <xpath expr="//widget[@name='web_ribbon']" position="after">
+                <field name="image_128" widget="image" class="oe_avatar m-0"/>
+            </xpath>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="view_project_kanban_inherited">
+        <field name="name">project.project.kanban.inherited</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@class='o_project_kanban_main d-flex align-items-baseline gap-1 ms-1']" position="inside">
+                <field name="image_128" widget="image" class="oe_avatar m-0"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
