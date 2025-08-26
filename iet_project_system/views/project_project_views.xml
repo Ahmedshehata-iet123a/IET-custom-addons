@@ -25,7 +25,7 @@
                         class="btn-primary"
                         icon="fa-download"/>
             </xpath>
-            <xpath expr="//notebook" position="inside">
+             <xpath expr="//notebook" position="inside">
                 <page name="project_plan" string="Project Plan">
                     <field name="project_plan_line_ids">
                         <list editable="bottom">
@@ -36,16 +36,18 @@
                             </control>
                             <field name="display_type" column_invisible="True"/>
                             <field name="name" required="1"/>
-                            <field name="planned_start_date" required="display_type != 'line_section'"
-                                   invisible="display_type == 'line_section'"/>
-                            <field name="actual_start_date" invisible="display_type == 'line_section'"/>
-                            <field name="task_id" column_invisible="1"/>
-                            <field name="planned_end_date" required="True"
+                            <field name="planned_start_date"
                                    />
-                            <field name="actual_end_date" invisible="display_type == 'line_section'"/>
+                            <field name="actual_start_date"/>
+                            <field name="task_id" column_invisible="1"/>
+                            <field name="planned_end_date"
+                                   />
+                            <field name="actual_end_date"/>
                             <field name="task_owner" invisible="display_type == 'line_section'"/>
                             <field name="status" invisible="display_type == 'line_section'"/>
                             <field name="comments" invisible="display_type == 'line_section'"/>
+                            <field name="planned_duration"/>
+                            <field name="actual_duration"/>
                         </list>
                     </field>
                 </page>
