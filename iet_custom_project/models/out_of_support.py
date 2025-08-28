@@ -22,3 +22,5 @@ class OutOfSupport(models.Model):
         default=lambda self: self.env.user
     )
     stage_name = fields.Char(string="Stage Name")
+    is_out_of_support = fields.Boolean(string="Out of Support Reason")
+    is_cancel = fields.Boolean(string="Cancel Reason")

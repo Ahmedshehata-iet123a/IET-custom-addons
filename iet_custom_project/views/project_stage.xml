@@ -18,6 +18,7 @@
                         <field name="project_closing"/>
                         <field name="training_document"/>
                         <field name="out_of_support"/>
+                        <field name="is_cancel"/>
                     </group>
                 </group>
             </xpath>

@@ -202,28 +202,31 @@ class Project(models.Model):
 
                 raise UserError(_(
                     "Cannot move project '%s' to stage '%s' without providing "
-                    "an out of support reason. Please use the 'Set Out of Support' "
-                    "action instead." % (record.name, record.stage_id.name)
+                    "a reason. Please use the 'Set Out of Support' action instead."
+                    % (record.name, record.stage_id.name)
                 ))
+
+            if record.stage_id.is_cancel and not self._context.get('bypass_out_of_support_check'):
+                last_record = self.env['out.of.support'].search([
+                    ('project_id', '=', record.id)
+                ], order='date desc, id desc', limit=1)
+                raise UserError(_(
+                    "Cannot move project '%s' to stage '%s' without providing a cancel reason."
+                    % (record.name, record.stage_id.name)
+                ))
+
+
+
 
     def action_set_out_of_support_stage(self):
         self.ensure_one()
-
-        out_of_support_stage = self.env['project.project.stage'].search([
-            ('out_of_support', '=', True)
-        ], limit=1)
-
-        if not out_of_support_stage:
-            raise UserError(_("No 'Out of Support' stage found."))
-
         return {
-            'name': _('Set Out of Support'),
+            'name': _('Set Project Stage'),
             'type': 'ir.actions.act_window',
             'res_model': 'project.out.of.support.wizard',
             'target': 'new',
             'context': {
                 'default_project_id': self.id,
-                'default_new_stage_id': out_of_support_stage.id,
             },
             'view_mode': 'form',
         }

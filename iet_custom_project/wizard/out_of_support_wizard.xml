@@ -4,10 +4,24 @@
         <field name="model">project.out.of.support.wizard</field>
         <field name="arch" type="xml">
             <form string="Out of Support Reason">
-                <group>
-                    <field name="reason"/>
-                    <field name="date"/>
-                </group>
+
+                <sheet>
+                    <group>
+                        <field name="project_id" readonly="1"/>
+                    </group>
+
+                    <group string="Reason Information">
+                        <field name="reason"/>
+                        <field name="date"/>
+                    </group>
+
+                    <group string="Stage Type">
+                        <field name="is_out_of_support"/>
+                        <field name="is_cancel"/>
+                    </group>
+                </sheet>
+
+
                 <footer>
                     <button name="confirm_out_of_support" type="object" string="Confirm" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>

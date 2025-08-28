@@ -33,7 +33,7 @@
                            options='{"end_date_field": "free_support_end_date", "always_range": true}'/>
                     <field name="free_support_end_date" invisible="1" required="free_support_start_date"/>
 
-                    <field name="contract_project_start_date" string="Contract Project Date" widget="daterange"
+                    <field name="contract_project_start_date" string="Contract Support Date" widget="daterange"
                            options='{"end_date_field": "contract_project_end_date", "always_range": true}'/>
                     <field name="contract_project_end_date" invisible="1" required="contract_project_start_date"/>
                 </xpath>
