@@ -5,7 +5,7 @@ from odoo.exceptions import ValidationError
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    team_name = fields.Char(string="Team Name", required=True)
+    team_name = fields.Char(string="Team Name")
     date_start = fields.Datetime(string="Start Date")
     end_date = fields.Datetime(string="End Date")
 
