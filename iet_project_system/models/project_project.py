@@ -21,6 +21,7 @@ class Project(models.Model):
         Task = self.env['project.task']
         for project in self:
             project.hide_button = True
+            project.project_plan_line_ids.assign_milestones_to_plan_lines()
             task_type_ids = self.env['project.task.type'].search([
                 ('generate_tasks', '=', True),
                 ('project_ids', 'in', [project.id])
@@ -37,6 +38,7 @@ class Project(models.Model):
                     'end_date': plan_line.planned_end_date,
                     'team_name': project.team_id.name,
                     'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
+                    'milestone_id': plan_line.milestone_id.id if plan_line.milestone_id else False,
                     'stage_id': task_type_ids[0].id,
                 }
                 _logger.info("Creating task with vals: %s", vals)
@@ -46,6 +48,7 @@ class Project(models.Model):
         Task = self.env['project.task']
         for project in self:
             project.hide_button = True
+            project.project_plan_line_ids.assign_milestones_to_plan_lines()
             task_type_ids = self.env['project.task.type'].search([
                 ('generate_tasks', '=', True),
                 ('project_ids', 'in', [project.id])
@@ -62,6 +65,7 @@ class Project(models.Model):
                     'end_date': plan_line.planned_end_date,
                     'team_name': project.team_id.name,
                     'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
+                    'milestone_id': plan_line.milestone_id.id if plan_line.milestone_id else False,
                     'stage_id': task_type_ids[0].id,
 
                 }

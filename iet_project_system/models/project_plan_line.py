@@ -3,7 +3,6 @@ from datetime import timedelta, datetime
 from odoo.exceptions import ValidationError
 
 
-
 class ProjectPlanLine(models.Model):
     _name = 'project.plan.line'
     _description = 'Project Plan Line'
@@ -33,6 +32,18 @@ class ProjectPlanLine(models.Model):
         store=True,
         help="Duration between actual start and end dates excluding weekends and holidays."
     )
+    milestone_id = fields.Many2one('project.milestone', string='Milestone')
+
+    def assign_milestones_to_plan_lines(self):
+        current_milestone = None
+        for line in self.sorted(key=lambda l: l.id):
+            if line.display_type == 'line_section':
+                current_milestone = self.env['project.milestone'].search([
+                    ('name', '=', line.name),
+                    ('project_id', '=', line.project_id.id)
+                ], limit=1)
+            elif not line.display_type:
+                line.milestone_id = current_milestone.id if current_milestone else False
 
     @api.depends('planned_start_date', 'planned_end_date', 'actual_start_date', 'actual_end_date', 'project_id')
     def _compute_durations(self):
@@ -110,13 +121,17 @@ class ProjectPlanLine(models.Model):
     def _create_milestone_if_section(self):
         for rec in self:
             if rec.display_type == 'line_section' and rec.project_id:
-                milestone_exists = self.env['project.milestone'].search([
+                milestone = self.env['project.milestone'].search([
                     ('name', '=', rec.name),
                     ('project_id', '=', rec.project_id.id)
                 ], limit=1)
-                if not milestone_exists:
-                    self.env['project.milestone'].create({
+                if not milestone:
+                    milestone = self.env['project.milestone'].create({
                         'name': rec.name,
                         'deadline': rec.planned_end_date,
                         'project_id': rec.project_id.id,
+                    })
+                if rec.milestone_id != milestone:
+                    super(ProjectPlanLine, rec).write({
+                        'milestone_id': milestone.id
                     })

@@ -26,8 +26,10 @@
                 <xpath expr="//field[@name='date_start']" position="after">
                     <field name="start_project_date" string="Project Date" widget="daterange"
                            options='{"end_date_field": "end_project_date", "always_range": "1"}'
-                           required="start_project_date or end_project_date"/>
-                    <field name="end_project_date" invisible="1" required="start_project_date"/>
+                           required="start_project_date or end_project_date"
+                           groups="project.group_project_user,project.group_project_manager"/>
+                    <field name="end_project_date" invisible="1" required="start_project_date"
+                           groups="project.group_project_user,project.group_project_manager"/>
 
                     <field name="free_support_start_date" string="Free Support Date" widget="daterange"
                            options='{"end_date_field": "free_support_end_date", "always_range": true}'/>
@@ -37,9 +39,12 @@
                            options='{"end_date_field": "contract_project_end_date", "always_range": true}'/>
                     <field name="contract_project_end_date" invisible="1" required="contract_project_start_date"/>
                 </xpath>
+                <xpath expr="//page[@name='description']" position="attributes">
+                    <attribute name="groups">project.group_project_user,project.group_project_manager</attribute>
+                </xpath>
 
                 <xpath expr="//page[@name='settings']" position="after">
-                    <page name="attachments" string="Attachments">
+                    <page name="attachments" string="Attachments" groups="project.group_project_user,project.group_project_manager">
                         <notebook>
                             <page string="project scope">
                                 <field name="attachment_project_scope_ids" mode="list,form">

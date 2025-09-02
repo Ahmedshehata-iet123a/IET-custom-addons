@@ -11,4 +11,29 @@
         <field name="domain_force">[('user_ids', 'in', [user.id])]</field>
         <field name="groups" eval="[(4, ref('project.group_project_user'))]"/>
     </record>
+
+    <!-- Define the new group -->
+<!--    <record id="group_project_plan_editor" model="res.groups">-->
+<!--        <field name="name">Project Plan Editor</field>-->
+<!--    </record>-->
+    <record id="access_project_project_plan_editor" model="ir.model.access">
+        <field name="name">Project Plan Editor Access to Project</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="group_id" ref="project.group_project_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="access_project_plan_line_plan_editor" model="ir.model.access">
+        <field name="name">Project Plan Editor Access to Project Plan Lines</field>
+        <field name="model_id" ref="model_project_plan_line"/>
+        <field name="group_id" ref="project.group_project_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
 </odoo>
