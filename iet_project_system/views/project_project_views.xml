@@ -5,6 +5,10 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="scope_ids" widget="many2many_tags"/>
+                <field name="completion_percent" readonly="1"/>
+            </xpath>
             <xpath expr="//form" position="inside">
                 <field name="hide_button"/>
             </xpath>
@@ -25,10 +29,12 @@
                         class="btn-primary"
                         icon="fa-download"/>
             </xpath>
-             <xpath expr="//notebook" position="inside">
-                <page name="project_plan" string="Project Plan" groups="project.group_project_user,project.group_project_manager">
+            <xpath expr="//notebook" position="inside">
+                <page name="project_plan" string="Project Plan"
+                      groups="project.group_project_user,project.group_project_manager">
                     <field name="project_plan_line_ids">
-                        <list editable="bottom" decoration-bf="display_type == 'line_section'" decoration-info="display_type == 'line_section'">
+                        <list editable="bottom" decoration-bf="display_type == 'line_section'"
+                              decoration-info="display_type == 'line_section'">
                             <control>
                                 <create name="add_product_control" string="Add a Task"/>
                                 <create name="add_section_control" string="Add a Milestone"
@@ -37,19 +43,20 @@
                             <field name="display_type" column_invisible="True"/>
                             <field name="name" required="1"/>
                             <field name="planned_start_date"
-                                   />
+                            />
                             <field name="milestone_id" column_invisible="1"/>
 
                             <field name="actual_start_date"/>
                             <field name="task_id" column_invisible="1"/>
                             <field name="planned_end_date"
-                                   />
+                            />
                             <field name="actual_end_date"/>
                             <field name="task_owner" invisible="display_type == 'line_section'"/>
                             <field name="status" invisible="display_type == 'line_section'"/>
                             <field name="comments" invisible="display_type == 'line_section'"/>
                             <field name="planned_duration"/>
                             <field name="actual_duration"/>
+                            <field name="status_done"/>
                         </list>
                     </field>
                 </page>

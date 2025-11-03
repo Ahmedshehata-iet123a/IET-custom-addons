@@ -1,4 +1,5 @@
-from odoo import models, fields
+from odoo import models, fields, api
+from datetime import timedelta
 import xlsxwriter
 import io
 import base64
@@ -16,6 +17,65 @@ class Project(models.Model):
         string='Project Plan Lines'
     )
     hide_button = fields.Boolean(string="checkbox")
+
+    scope_ids = fields.Many2many('project.scope', string='Scope')
+    completion_percent = fields.Float(string='Completion %', compute='_compute_completion_percent', store=True)
+
+    def _cron_send_deadline_notifications(self):
+        today = fields.Date.today()
+        users_to_notify = self.env['res.users'].search([
+            ('name', 'in', ['Omar elnabawy', 'Mahmoud Elaskary', 'Shrouq Abdeldaym'])
+        ])
+
+        projects = self.search([])
+        for project in projects:
+            dates = {
+                'Project End': project.end_project_date,
+                'Free Support End': project.free_support_end_date,
+                'Contract Support End': project.contract_project_end_date
+            }
+
+            for label, date in dates.items():
+                if not date:
+                    continue
+
+                diff = (date - today).days
+                _logger.info("📅 %s: %s ends in %s days", project.name, label, diff)
+
+                if 0 <= diff <= 10:
+                    recipients = users_to_notify | project.user_id
+                    body = f"⚠️ Reminder: {label} for project '{project.name}' ends on {date}."
+
+                    for user in recipients:
+                        if not user.partner_id:
+                            _logger.warning("User %s has no partner_id!", user.name)
+                            continue
+
+                        _logger.info("📨 Sending to %s (%s)", user.name, user.email)
+
+                        project.message_post(
+                            body=body,
+                            partner_ids=[user.partner_id.id],
+                            subtype_xmlid='mail.mt_comment'
+                        )
+
+                        if user.email:
+                            mail_values = {
+                                'subject': f"Deadline Reminder: {project.name}",
+                                'body_html': f"<p>{body}</p>",
+                                'email_to': user.email,
+                                'email_from': self.env.user.email or 'no-reply@iet.com',
+                            }
+                            mail = self.env['mail.mail'].create(mail_values)
+                            mail.send()
+                            _logger.info("✅ Email sent successfully to %s", user.email)
+
+    @api.depends('project_plan_line_ids.status_done')
+    def _compute_completion_percent(self):
+        for project in self:
+            total = len(project.project_plan_line_ids)
+            done = len(project.project_plan_line_ids.filtered(lambda l: l.status_done))
+            project.completion_percent = (done / total) * 100 if total else 0
 
     def action_generate_tasks(self):
         Task = self.env['project.task']

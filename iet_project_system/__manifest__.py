@@ -9,11 +9,13 @@
     'data': [
         'security/project_security.xml',
         'security/ir.model.access.csv',
+        'data/ir_cron.xml',
         'views/project_project_views.xml',
         'views/project_task_type.xml',
         'views/project_task.xml',
         'views/business_tasks.xml',
         'views/development_tasks.xml',
+        'views/project_scope.xml',
     ],
     'installable': True,
     'application': False,

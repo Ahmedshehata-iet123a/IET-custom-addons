@@ -33,6 +33,24 @@ class ProjectPlanLine(models.Model):
         help="Duration between actual start and end dates excluding weekends and holidays."
     )
     milestone_id = fields.Many2one('project.milestone', string='Milestone')
+    status_done = fields.Boolean(string='Done ✅', default=False)
+
+    @api.onchange('status_done')
+    def _onchange_status_done(self):
+        for line in self:
+            if line.task_id:
+                if line.status_done:
+                    done_stage = self.env['project.task.type'].search([
+                        ('fold', '=', True)
+                    ], limit=1)
+                    if done_stage:
+                        line.task_id.stage_id = done_stage.id
+                        line.task_id.is_closed = True
+                else:
+                    # Optional: move back to first stage if unchecked
+                    first_stage = self.env['project.task.type'].search([], limit=1, order='sequence')
+                    if first_stage:
+                        line.task_id.stage_id = first_stage.id
 
     def assign_milestones_to_plan_lines(self):
         current_milestone = None
@@ -114,8 +132,47 @@ class ProjectPlanLine(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
+
+        if self.env.context.get('skip_task_update'):
+            return res
+
+        if 'status_done' in vals:
+            for line in self:
+                if line.task_id:
+                    if 'status_done' in vals:
+                        for line in self:
+                            if line.task_id:
+                                if vals['status_done']:
+                                    done_stage = self.env['project.task.type'].search([('fold', '=', True)], limit=1)
+                                    update_vals = {
+                                        'is_closed': True,
+                                        'status_done': True,
+                                        'state': '1_done',
+                                    }
+                                    if done_stage:
+                                        update_vals['stage_id'] = done_stage.id
+
+                                    line.task_id.with_context(skip_plan_line_update=True).sudo().write(update_vals)
+
+                                else:
+                                    last_open_stage = self.env['project.task.type'].search(
+                                        [('fold', '=', False)], order='sequence', limit=1
+                                    )
+                                    update_vals = {
+                                        'is_closed': False,
+                                        'status_done': False,
+                                        'state': '01_in_progress',
+                                    }
+                                    if last_open_stage:
+                                        update_vals['stage_id'] = last_open_stage.id
+
+                                    line.task_id.with_context(skip_plan_line_update=True).sudo().write(update_vals)
+
+                            line.project_id._compute_completion_percent()
+
         for rec in self:
             rec._create_milestone_if_section()
+
         return res
 
     def _create_milestone_if_section(self):
