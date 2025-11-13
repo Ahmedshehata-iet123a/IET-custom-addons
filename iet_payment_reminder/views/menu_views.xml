@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_payment_notification_root"
+              name="Payment Notifications"
+              sequence="10"/>
+
+    <menuitem id="menu_project_payment"
+              name="Payment Schedule"
+              parent="menu_payment_notification_root"
+              action="action_project_payment"
+              sequence="10"/>
+
+</odoo>

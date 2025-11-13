@@ -28,6 +28,11 @@
                         string="Export Project Plan"
                         class="btn-primary"
                         icon="fa-download"/>
+                <button name="action_import_project_plan"
+                        type="object"
+                        string="Import Project Plan"
+                        class="btn-primary"
+                        icon="fa-upload"/>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page name="project_plan" string="Project Plan"
@@ -52,11 +57,11 @@
                             />
                             <field name="actual_end_date"/>
                             <field name="task_owner" invisible="display_type == 'line_section'"/>
-                            <field name="status" invisible="display_type == 'line_section'"/>
+                            <field name="status_done"/>
+                            <field name="status" column_invisible="1" invisible="display_type == 'line_section'"/>
                             <field name="comments" invisible="display_type == 'line_section'"/>
                             <field name="planned_duration"/>
                             <field name="actual_duration"/>
-                            <field name="status_done"/>
                         </list>
                     </field>
                 </page>

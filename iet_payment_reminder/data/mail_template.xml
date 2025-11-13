@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="email_payment_reminder" model="mail.template">
+        <field name="name">Payment Reminder</field>
+        <field name="model_id" ref="iet_payment_reminder.model_iet_payment_reminder"/>
+        <field name="email_from">${object.company_id.email or ''}</field>
+        <field name="email_to">${object.client_id.email}</field>
+        <field name="subject">[Reminder] ${object.project_id.name} - ${object.name}</field>
+        <field name="body_html"><![CDATA[
+            <p>Dear ${object.client_id.name},</p>
+            <p>Please be reminded that <strong>${object.name}</strong> for project <strong>${object.project_id.name}</strong> is due on <strong>${format_date(object.uat_due_date or object.live_due_date)}</strong>.</p>
+            <p>Kindly process the payment.</p>
+            <p>Thank you!</p>
+        ]]></field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

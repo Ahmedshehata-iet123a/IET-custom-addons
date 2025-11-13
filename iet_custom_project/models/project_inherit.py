@@ -24,15 +24,14 @@ class Project(models.Model):
     _inherit = 'project.project'
 
     team_id = fields.Many2one('project.team', string='Team')
-    start_project_date = fields.Date("Start Project Date")
-    end_project_date = fields.Date("End Project Date")
+    start_project_date = fields.Date("Start Project Date", required=False)
+    end_project_date = fields.Date("End Project Date", required=False)
 
     free_support_start_date = fields.Date("Free Support Start Date")
     free_support_end_date = fields.Date("Free Support End Date")
 
     contract_project_start_date = fields.Date("Contract Project Start Date")
     contract_project_end_date = fields.Date("Contract Project End Date")
-
 
     industry_id = fields.Many2one('project.industry', string='Industry')
     implementation_owner_ids = fields.Many2many(
@@ -62,7 +61,6 @@ class Project(models.Model):
         ],
         help='Employees from Development department responsible for project development'
     )
-
 
     @api.constrains(
         'start_project_date', 'end_project_date',
@@ -214,9 +212,6 @@ class Project(models.Model):
                     "Cannot move project '%s' to stage '%s' without providing a cancel reason."
                     % (record.name, record.stage_id.name)
                 ))
-
-
-
 
     def action_set_out_of_support_stage(self):
         self.ensure_one()

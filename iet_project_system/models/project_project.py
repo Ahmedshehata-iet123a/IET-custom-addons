@@ -22,13 +22,27 @@ class Project(models.Model):
     completion_percent = fields.Float(string='Completion %', compute='_compute_completion_percent', store=True)
 
     def _cron_send_deadline_notifications(self):
+        """إرسال تذكيرات قبل انتهاء المواعيد (0-10 أيام)"""
         today = fields.Date.today()
-        users_to_notify = self.env['res.users'].search([
+
+        # المستخدمين المحددين + مدير المشروع
+        fixed_users = self.env['res.users'].search([
             ('name', 'in', ['Omar elnabawy', 'Mahmoud Elaskary', 'Shrouq Abdeldaym'])
         ])
 
+        # جلب كل المشاريع
         projects = self.search([])
+        if not projects:
+            _logger.info("لا توجد مشاريع للتحقق من المواعيد.")
+            return
+
+        # نوع الأكتيفيتي (To Do)
+        activity_type = self.env.ref('mail.mail_activity_data_todo', raise_if_not_found=False)
+        if not activity_type:
+            activity_type = self.env['mail.activity.type'].search([('name', '=', 'To Do')], limit=1)
+
         for project in projects:
+            # تعريف المواعيد المراد متابعتها
             dates = {
                 'Project End': project.end_project_date,
                 'Free Support End': project.free_support_end_date,
@@ -40,36 +54,68 @@ class Project(models.Model):
                     continue
 
                 diff = (date - today).days
-                _logger.info("📅 %s: %s ends in %s days", project.name, label, diff)
+                _logger.info("Project: %s | %s ends in %d days", project.name, label, diff)
 
+                # فقط إذا كان الموعد خلال 0 إلى 10 أيام
                 if 0 <= diff <= 10:
-                    recipients = users_to_notify | project.user_id
-                    body = f"⚠️ Reminder: {label} for project '{project.name}' ends on {date}."
+                    recipients = fixed_users | project.user_id
+                    body = f"Reminder: {label} for project '<strong>{project.name}</strong>' ends on <strong>{date}</strong>."
 
                     for user in recipients:
                         if not user.partner_id:
                             _logger.warning("User %s has no partner_id!", user.name)
                             continue
 
-                        _logger.info("📨 Sending to %s (%s)", user.name, user.email)
+                        partner_id = user.partner_id.id
+                        _logger.info("Sending notifications to %s (%s)", user.name, user.email or 'No email')
 
+                        # 1. رسالة في الـ Chatter
                         project.message_post(
                             body=body,
-                            partner_ids=[user.partner_id.id],
+                            partner_ids=[partner_id],
                             subtype_xmlid='mail.mt_comment'
                         )
 
+                        # 2. إرسال إيميل (إن وجد)
                         if user.email:
-                            mail_values = {
-                                'subject': f"Deadline Reminder: {project.name}",
-                                'body_html': f"<p>{body}</p>",
-                                'email_to': user.email,
-                                'email_from': self.env.user.email or 'no-reply@iet.com',
-                            }
-                            mail = self.env['mail.mail'].create(mail_values)
-                            mail.send()
-                            _logger.info("✅ Email sent successfully to %s", user.email)
+                            try:
+                                mail_values = {
+                                    'subject': f"Deadline Reminder: {project.name} - {label}",
+                                    'body_html': f"<p>{body}</p><p>Please check the project for details.</p>",
+                                    'email_to': user.email,
+                                    'email_from': self.env.user.email or 'no-reply@iet.com',
+                                }
+                                mail = self.env['mail.mail'].create(mail_values)
+                                mail.send(auto_commit=True)
+                                _logger.info("Email sent to %s", user.email)
+                            except Exception as e:
+                                _logger.error("Failed to send email to %s: %s", user.email, str(e))
 
+                        # 3. إنشاء أكتيفيتي (تظهر في My Activities)
+                        try:
+                            self.env['mail.activity'].create({
+                                'res_id': project.id,
+                                'res_model_id': self.env['ir.model']._get_id('project.project'),
+                                'activity_type_id': activity_type.id if activity_type else False,
+                                'summary': f"{label} ends in {diff} day(s)",
+                                'note': f"<p>{body}</p>",
+                                'date_deadline': today,  # أو date - 1
+                                'user_id': user.id,
+                            })
+                            _logger.info("Activity created for %s", user.name)
+                        except Exception as e:
+                            _logger.error("Failed to create activity for %s: %s", user.name, str(e))
+
+                        # 4. نوتفيكيشن فوري في الجرس (Bell Icon) - Odoo 18
+                        try:
+                            project.message_notify(
+                                partner_ids=[partner_id],
+                                body=body,
+                                subject=f"{label} Alert: {project.name}",
+                            )
+                            _logger.info("Bell notification sent to %s", user.name)
+                        except Exception as e:
+                            _logger.error("Failed to send notification to %s: %s", user.name, str(e))
     @api.depends('project_plan_line_ids.status_done')
     def _compute_completion_percent(self):
         for project in self:
@@ -169,7 +215,7 @@ class Project(models.Model):
             worksheet.merge_range('E1:F1', f'Date: {current_date.strftime("%Y-%m-%d")}', date_format)
 
             headers = ["Task Name", "Planned Start Date", "Actual Start Date",
-                       "Planned End Date", "Actual End Date", "Task Owner", "Status", "Comments"]
+                       "Planned End Date", "Actual End Date", "Task Owner", "Done", "Comments"]
             header_row = 3
             for col, header in enumerate(headers):
                 worksheet.write(header_row, col, header, header_format)
@@ -188,7 +234,7 @@ class Project(models.Model):
                 worksheet.write(row, 4, line.actual_end_date.strftime(
                     "%Y-%m-%d %H:%M") if line.actual_end_date else '', task_format)
                 worksheet.write(row, 5, line.task_owner or '', task_format)
-                worksheet.write(row, 6, line.status or '', task_format)
+                worksheet.write(row, 6, line.status_done or '', task_format)
                 worksheet.write(row, 7, line.comments or '', task_format)
                 row += 1
 
@@ -210,3 +256,97 @@ class Project(models.Model):
                 'url': download_url,
                 'target': 'self',
             }
+
+    def action_import_plan(self):
+        """استيراد خطة المشروع من ملف Excel"""
+        if not self.excel_file:
+            raise UserWarning("Please upload an Excel file first!")
+
+        try:
+            # فك تشفير الملف
+            file_content = base64.b64decode(self.excel_file)
+            workbook = xlrd.open_workbook(file_contents=file_content)
+            sheet = workbook.sheet_by_index(0)
+
+            # البحث عن صف الهيدر (يبدأ بـ Task Name)
+            header_row = None
+            for row_idx in range(sheet.nrows):
+                cell_value = sheet.cell_value(row_idx, 0)
+                if cell_value and 'Task Name' in str(cell_value):
+                    header_row = row_idx
+                    break
+
+            if header_row is None:
+                raise UserWarning("Cannot find header row with 'Task Name'")
+
+            # قراءة البيانات
+            plan_lines_to_create = []
+            for row_idx in range(header_row + 1, sheet.nrows):
+                try:
+                    task_name = sheet.cell_value(row_idx, 0)
+                    if not task_name or task_name.strip() == '':
+                        continue
+
+                    # قراءة التواريخ
+                    planned_start = self._parse_date(sheet, row_idx, 1)
+                    actual_start = self._parse_date(sheet, row_idx, 2)
+                    planned_end = self._parse_date(sheet, row_idx, 3)
+                    actual_end = self._parse_date(sheet, row_idx, 4)
+
+                    # قراءة باقي البيانات
+                    task_owner = sheet.cell_value(row_idx, 5) if row_idx < sheet.nrows and sheet.ncols > 5 else ''
+                    done = sheet.cell_value(row_idx, 6) if row_idx < sheet.nrows and sheet.ncols > 6 else ''
+                    comments = sheet.cell_value(row_idx, 7) if row_idx < sheet.nrows and sheet.ncols > 7 else ''
+
+                    # تحويل Done إلى boolean
+                    status_done = False
+                    if done:
+                        done_str = str(done).strip().lower()
+                        status_done = done_str in ['true', '1', 'yes', 'done', 'x']
+
+                    vals = {
+                        'project_id': self.project_id.id,
+                        'name': str(task_name).strip(),
+                        'planned_start_date': planned_start,
+                        'actual_start_date': actual_start,
+                        'planned_end_date': planned_end,
+                        'actual_end_date': actual_end,
+                        'task_owner': str(task_owner).strip() if task_owner else '',
+                        'status_done': status_done,
+                        'comments': str(comments).strip() if comments else '',
+                    }
+
+                    plan_lines_to_create.append(vals)
+
+                except Exception as e:
+                    _logger.warning(f"Error processing row {row_idx}: {str(e)}")
+                    continue
+
+            # حذف الخطوط القديمة (اختياري - يمكنك تعديل هذا السلوك)
+            # self.project_id.project_plan_line_ids.unlink()
+
+            # إنشاء الخطوط الجديدة
+            if plan_lines_to_create:
+                self.env['project.plan.line'].create(plan_lines_to_create)
+                _logger.info(f"Successfully imported {len(plan_lines_to_create)} plan lines")
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Success',
+                    'message': f'Successfully imported {len(plan_lines_to_create)} tasks',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"Error importing project plan: {str(e)}")
+            raise UserWarning(f"Error importing file: {str(e)}")
+
+    def action_import_project_plan(self):
+        action = self.env["ir.actions.actions"]._for_xml_id("iet_project_system.action_import_project_plan_wizard")
+
+        return action
+

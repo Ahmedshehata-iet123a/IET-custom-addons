@@ -16,6 +16,7 @@
         'views/business_tasks.xml',
         'views/development_tasks.xml',
         'views/project_scope.xml',
+        'wizard/import_project_plan.xml',
     ],
     'installable': True,
     'application': False,
