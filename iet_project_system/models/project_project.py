@@ -2,9 +2,7 @@ from odoo import models, fields, api
 from datetime import timedelta
 import xlsxwriter
 import io
-from io import BytesIO
 import base64
-import openpyxl
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -118,7 +116,6 @@ class Project(models.Model):
                             _logger.info("Bell notification sent to %s", user.name)
                         except Exception as e:
                             _logger.error("Failed to send notification to %s: %s", user.name, str(e))
-
     @api.depends('project_plan_line_ids.status_done')
     def _compute_completion_percent(self):
         for project in self:
@@ -260,88 +257,96 @@ class Project(models.Model):
                 'target': 'self',
             }
 
-    def action_import_plan(self):
-        """استيراد خطة المشروع من ملف Excel (xlsx) باستخدام openpyxl"""
-        if not self.excel_file:
-            raise UserWarning("Please upload an Excel file first!")
-
-        try:
-            # فك تشفير الملف
-            file_content = base64.b64decode(self.excel_file)
-            file_stream = BytesIO(file_content)
-
-            # قراءة ملف Excel باستخدام openpyxl
-            workbook = openpyxl.load_workbook(file_stream, data_only=True)
-            sheet = workbook.active
-
-            # إيجاد صف الهيدر (يبدأ بـ Task Name)
-            header_row = None
-            for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row, values_only=False):
-                if row[0].value and 'Task Name' in str(row[0].value):
-                    header_row = row[0].row
-                    break
-
-            if not header_row:
-                raise UserWarning("Cannot find header row with 'Task Name'")
-
-            plan_lines_to_create = []
-
-            # قراءة البيانات بعد الهيدر
-            for row in sheet.iter_rows(min_row=header_row + 1, values_only=True):
-                task_name = row[0]
-                if not task_name or str(task_name).strip() == '':
-                    continue
-
-                # قراءة التواريخ
-                planned_start = row[1]
-                actual_start = row[2]
-                planned_end = row[3]
-                actual_end = row[4]
-
-                task_owner = row[5] if len(row) > 5 else ''
-                done = row[6] if len(row) > 6 else ''
-                comments = row[7] if len(row) > 7 else ''
-
-                # تحويل Done إلى boolean
-                status_done = False
-                if done:
-                    done_str = str(done).strip().lower()
-                    status_done = done_str in ['true', '1', 'yes', 'done', 'x']
-
-                vals = {
-                    'project_id': self.project_id.id,
-                    'name': str(task_name).strip(),
-                    'planned_start_date': planned_start,
-                    'actual_start_date': actual_start,
-                    'planned_end_date': planned_end,
-                    'actual_end_date': actual_end,
-                    'task_owner': str(task_owner).strip() if task_owner else '',
-                    'status_done': status_done,
-                    'comments': str(comments).strip() if comments else '',
-                }
-
-                plan_lines_to_create.append(vals)
-
-            # إنشاء الخطوط
-            if plan_lines_to_create:
-                self.env['project.plan.line'].create(plan_lines_to_create)
-
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'Success',
-                    'message': f'Successfully imported {len(plan_lines_to_create)} tasks',
-                    'type': 'success',
-                    'sticky': False,
-                },
-            }
-
-        except Exception as e:
-            _logger.error(f"Error importing project plan: {str(e)}")
-            raise UserWarning(f"Error importing file: {str(e)}")
+    # def action_import_plan(self):
+    #     """استيراد خطة المشروع من ملف Excel"""
+    #     if not self.excel_file:
+    #         raise UserWarning("Please upload an Excel file first!")
+    #
+    #     try:
+    #         # فك تشفير الملف
+    #         file_content = base64.b64decode(self.excel_file)
+    #         workbook = xlrd.open_workbook(file_contents=file_content)
+    #         sheet = workbook.sheet_by_index(0)
+    #
+    #         # البحث عن صف الهيدر (يبدأ بـ Task Name)
+    #         header_row = None
+    #         for row_idx in range(sheet.nrows):
+    #             cell_value = sheet.cell_value(row_idx, 0)
+    #             if cell_value and 'Task Name' in str(cell_value):
+    #                 header_row = row_idx
+    #                 break
+    #
+    #         if header_row is None:
+    #             raise UserWarning("Cannot find header row with 'Task Name'")
+    #
+    #         # قراءة البيانات
+    #         plan_lines_to_create = []
+    #         for row_idx in range(header_row + 1, sheet.nrows):
+    #             try:
+    #                 task_name = sheet.cell_value(row_idx, 0)
+    #                 if not task_name or task_name.strip() == '':
+    #                     continue
+    #
+    #                 # قراءة التواريخ
+    #                 planned_start = self._parse_date(sheet, row_idx, 1)
+    #                 actual_start = self._parse_date(sheet, row_idx, 2)
+    #                 planned_end = self._parse_date(sheet, row_idx, 3)
+    #                 actual_end = self._parse_date(sheet, row_idx, 4)
+    #
+    #                 # قراءة باقي البيانات
+    #                 task_owner = sheet.cell_value(row_idx, 5) if row_idx < sheet.nrows and sheet.ncols > 5 else ''
+    #                 done = sheet.cell_value(row_idx, 6) if row_idx < sheet.nrows and sheet.ncols > 6 else ''
+    #                 comments = sheet.cell_value(row_idx, 7) if row_idx < sheet.nrows and sheet.ncols > 7 else ''
+    #
+    #                 # تحويل Done إلى boolean
+    #                 status_done = False
+    #                 if done:
+    #                     done_str = str(done).strip().lower()
+    #                     status_done = done_str in ['true', '1', 'yes', 'done', 'x']
+    #
+    #                 vals = {
+    #                     'project_id': self.project_id.id,
+    #                     'name': str(task_name).strip(),
+    #                     'planned_start_date': planned_start,
+    #                     'actual_start_date': actual_start,
+    #                     'planned_end_date': planned_end,
+    #                     'actual_end_date': actual_end,
+    #                     'task_owner': str(task_owner).strip() if task_owner else '',
+    #                     'status_done': status_done,
+    #                     'comments': str(comments).strip() if comments else '',
+    #                 }
+    #
+    #                 plan_lines_to_create.append(vals)
+    #
+    #             except Exception as e:
+    #                 _logger.warning(f"Error processing row {row_idx}: {str(e)}")
+    #                 continue
+    #
+    #         # حذف الخطوط القديمة (اختياري - يمكنك تعديل هذا السلوك)
+    #         # self.project_id.project_plan_line_ids.unlink()
+    #
+    #         # إنشاء الخطوط الجديدة
+    #         if plan_lines_to_create:
+    #             self.env['project.plan.line'].create(plan_lines_to_create)
+    #             _logger.info(f"Successfully imported {len(plan_lines_to_create)} plan lines")
+    #
+    #         return {
+    #             'type': 'ir.actions.client',
+    #             'tag': 'display_notification',
+    #             'params': {
+    #                 'title': 'Success',
+    #                 'message': f'Successfully imported {len(plan_lines_to_create)} tasks',
+    #                 'type': 'success',
+    #                 'sticky': False,
+    #             }
+    #         }
+    #
+    #     except Exception as e:
+    #         _logger.error(f"Error importing project plan: {str(e)}")
+    #         raise UserWarning(f"Error importing file: {str(e)}")
 
     def action_import_project_plan(self):
         action = self.env["ir.actions.actions"]._for_xml_id("iet_project_system.action_import_project_plan_wizard")
 
         return action
+

@@ -1,12 +1,11 @@
 from odoo import models, fields, api
 from datetime import datetime
-import xlrd
 import base64
 import io
 import logging
+import openpyxl
 
 _logger = logging.getLogger(__name__)
-
 
 class ProjectImportPlan(models.TransientModel):
     _name = 'project.import.plan'
@@ -18,21 +17,20 @@ class ProjectImportPlan(models.TransientModel):
                                  default=lambda self: self.env.context.get('default_project_id'))
 
     def action_import_plan(self):
-        """استيراد خطة المشروع من ملف Excel"""
+        """استيراد خطة المشروع من ملف Excel (xlsx فقط)"""
         if not self.excel_file:
             raise UserWarning("Please upload an Excel file first!")
 
         try:
             # فك تشفير الملف
             file_content = base64.b64decode(self.excel_file)
-            workbook = xlrd.open_workbook(file_contents=file_content)
-            sheet = workbook.sheet_by_index(0)
+            workbook = openpyxl.load_workbook(filename=io.BytesIO(file_content), data_only=True)
+            sheet = workbook.active
 
             # البحث عن صف الهيدر (يبدأ بـ Task Name)
             header_row = None
-            for row_idx in range(sheet.nrows):
-                cell_value = sheet.cell_value(row_idx, 0)
-                if cell_value and 'Task Name' in str(cell_value):
+            for row_idx, row in enumerate(sheet.iter_rows(values_only=True)):
+                if row and row[0] and 'Task Name' in str(row[0]):
                     header_row = row_idx
                     break
 
@@ -41,28 +39,25 @@ class ProjectImportPlan(models.TransientModel):
 
             # قراءة البيانات
             plan_lines_to_create = []
-            for row_idx in range(header_row + 1, sheet.nrows):
+            rows = list(sheet.iter_rows(values_only=True))[header_row + 1:]
+            for row_idx, row in enumerate(rows, start=header_row + 1):
                 try:
-                    task_name = sheet.cell_value(row_idx, 0)
-                    if not task_name or task_name.strip() == '':
+                    task_name = row[0]
+                    if not task_name or str(task_name).strip() == '':
                         continue
 
                     # قراءة التواريخ
-                    planned_start = self._parse_date(sheet, row_idx, 1)
-                    actual_start = self._parse_date(sheet, row_idx, 2)
-                    planned_end = self._parse_date(sheet, row_idx, 3)
-                    actual_end = self._parse_date(sheet, row_idx, 4)
+                    planned_start = self._parse_date(row[1])
+                    actual_start = self._parse_date(row[2])
+                    planned_end = self._parse_date(row[3])
+                    actual_end = self._parse_date(row[4])
 
-                    # قراءة باقي البيانات
-                    task_owner = sheet.cell_value(row_idx, 5) if row_idx < sheet.nrows and sheet.ncols > 5 else ''
-                    done = sheet.cell_value(row_idx, 6) if row_idx < sheet.nrows and sheet.ncols > 6 else ''
-                    comments = sheet.cell_value(row_idx, 7) if row_idx < sheet.nrows and sheet.ncols > 7 else ''
+                    task_owner = row[5] if len(row) > 5 else ''
+                    done = row[6] if len(row) > 6 else ''
+                    comments = row[7] if len(row) > 7 else ''
 
                     # تحويل Done إلى boolean
-                    status_done = False
-                    if done:
-                        done_str = str(done).strip().lower()
-                        status_done = done_str in ['true', '1', 'yes', 'done', 'x']
+                    status_done = str(done).strip().lower() in ['true', '1', 'yes', 'done', 'x']
 
                     vals = {
                         'project_id': self.project_id.id,
@@ -82,9 +77,6 @@ class ProjectImportPlan(models.TransientModel):
                     _logger.warning(f"Error processing row {row_idx}: {str(e)}")
                     continue
 
-            # حذف الخطوط القديمة (اختياري - يمكنك تعديل هذا السلوك)
-            # self.project_id.project_plan_line_ids.unlink()
-
             # إنشاء الخطوط الجديدة
             if plan_lines_to_create:
                 self.env['project.plan.line'].create(plan_lines_to_create)
@@ -98,7 +90,7 @@ class ProjectImportPlan(models.TransientModel):
                     'message': f'Successfully imported {len(plan_lines_to_create)} tasks',
                     'type': 'success',
                     'sticky': False,
-                    'next': {'type': 'ir.actions.act_window_close'},  # ← دي اللي بتقفل الويزرد بعد الإشعار
+                    'next': {'type': 'ir.actions.act_window_close'},
                 }
             }
 
@@ -106,33 +98,22 @@ class ProjectImportPlan(models.TransientModel):
             _logger.error(f"Error importing project plan: {str(e)}")
             raise UserWarning(f"Error importing file: {str(e)}")
 
-    def _parse_date(self, sheet, row, col):
+    def _parse_date(self, value):
         """تحويل التاريخ من Excel إلى Odoo datetime"""
-        try:
-            cell_value = sheet.cell_value(row, col)
-            if not cell_value or str(cell_value).strip() == '':
-                return False
-
-            cell_type = sheet.cell_type(row, col)
-
-            # إذا كان التاريخ من نوع date في Excel
-            if cell_type == 3:  # XL_CELL_DATE
-                date_tuple = xlrd.xldate_as_tuple(cell_value, sheet.book.datemode)
-                return datetime(*date_tuple)
-
-            # إذا كان نص
-            elif cell_type == 1:  # XL_CELL_TEXT
-                date_str = str(cell_value).strip()
-                # محاولة تحويل صيغ مختلفة
-                for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d',
-                            '%d/%m/%Y', '%m/%d/%Y', '%d-%m-%Y']:
-                    try:
-                        return datetime.strptime(date_str, fmt)
-                    except ValueError:
-                        continue
-
-            return False
-        except Exception as e:
-            _logger.warning(f"Error parsing date at row {row}, col {col}: {str(e)}")
+        if not value:
             return False
 
+        if isinstance(value, datetime):
+            return value
+
+        # محاولة تحويل النصوص
+        date_str = str(value).strip()
+        for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d',
+                    '%d/%m/%Y', '%m/%d/%Y', '%d-%m-%Y']:
+            try:
+                return datetime.strptime(date_str, fmt)
+            except ValueError:
+                continue
+
+        _logger.warning(f"Cannot parse date: {value}")
+        return False
