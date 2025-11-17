@@ -2,7 +2,7 @@
     'name': 'IET Project System',
     'version': '1.0',
     'depends': ['project','iet_custom_project','hr', 'hr_timesheet'],
-     "website": "https://intelligent-experts.com/en/home/",
+    "website": "https://intelligent-experts.com/en/home/",
     'auther': 'IET - SalehElSrief',
     'category': 'Project',
     'description': 'Add Project Plan tab with tasks and milestones',
