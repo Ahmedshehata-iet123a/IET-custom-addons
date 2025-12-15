@@ -3,6 +3,7 @@ from odoo import models, fields, api
 from datetime import timedelta
 from odoo.exceptions import UserError
 
+
 class ProjectPayment(models.Model):
     _name = 'project.payment'
     _description = 'Project Payment Tracking'
@@ -41,8 +42,12 @@ class ProjectPayment(models.Model):
     uat_done = fields.Boolean(string='UAT Done', default=False)
     live_done = fields.Boolean(string='Live Done', default=False)
     contract_appear = fields.Boolean(default=False)
-    uat_appear = fields.Boolean( default=False)
-    live_appear = fields.Boolean( default=False)
+    uat_appear = fields.Boolean(default=False)
+    live_appear = fields.Boolean(default=False)
+
+    contract_done_date = fields.Datetime(string='Contract Done Date', readonly=True)
+    uat_done_date = fields.Datetime(string='UAT Done Date', readonly=True)
+    live_done_date = fields.Datetime(string='Live Done Date', readonly=True)
 
     # -------------------- State --------------------
     state = fields.Selection([
@@ -59,6 +64,7 @@ class ProjectPayment(models.Model):
         self.write({
             'contract_done': True,
             'contract_notification_sent': True,
+            'contract_done_date': fields.Datetime.now(),
         })
         self._update_state()
         self.message_post(body="Contract <strong>Done</strong> ✅")
@@ -68,6 +74,7 @@ class ProjectPayment(models.Model):
         self.write({
             'uat_done': True,
             'uat_notification_sent': True,
+            'uat_done_date': fields.Datetime.now(),
         })
         self._update_state()
         self.message_post(body="UAT <strong>Done</strong> ✅")
@@ -77,6 +84,7 @@ class ProjectPayment(models.Model):
         self.write({
             'live_done': True,
             'live_notification_sent': True,
+            'live_done_date': fields.Datetime.now(),
         })
         self._update_state()
         self.message_post(body="Live <strong>Done</strong> ✅")
@@ -105,7 +113,8 @@ class ProjectPayment(models.Model):
             'contract_snooze_count': self.contract_snooze_count + 1,
         })
         self._update_state()
-        self.message_post(body=f"Contract snoozed until <strong>{snooze_date}</strong> (#{self.contract_snooze_count}/2).")
+        self.message_post(
+            body=f"Contract snoozed until <strong>{snooze_date}</strong> (#{self.contract_snooze_count}/2).")
         return True
 
     def action_snooze_uat(self):
@@ -151,7 +160,6 @@ class ProjectPayment(models.Model):
         self.message_post(body="Returned to <strong>Pending</strong>.")
         return True
 
-
     # ==================== Cron Job ====================
 
     @api.model
@@ -171,9 +179,9 @@ class ProjectPayment(models.Model):
         for payment in records:
             # --- Contract ---
             if (payment.contract_payment_date <= one_week_later
-                and not payment.contract_notification_sent
-                and payment.state in ['pending', 'snoozed']
-                and (not payment.contract_snoozed_until or payment.contract_snoozed_until <= today)):
+                    and not payment.contract_notification_sent
+                    and payment.state in ['pending', 'snoozed']
+                    and (not payment.contract_snoozed_until or payment.contract_snoozed_until <= today)):
                 self._send_notification(payment, 'Contract', payment.contract_payment_date)
                 payment.write({'contract_notification_sent': True, 'state': 'pending'})
 
@@ -182,9 +190,9 @@ class ProjectPayment(models.Model):
 
             # --- UAT ---
             if (payment.uat_due_payment <= one_week_later
-                and not payment.uat_notification_sent
-                and payment.state in ['pending', 'snoozed']
-                and (not payment.uat_snoozed_until or payment.uat_snoozed_until <= today)):
+                    and not payment.uat_notification_sent
+                    and payment.state in ['pending', 'snoozed']
+                    and (not payment.uat_snoozed_until or payment.uat_snoozed_until <= today)):
                 self._send_notification(payment, 'UAT', payment.uat_due_payment)
                 payment.write({'uat_notification_sent': True, 'state': 'pending'})
 
@@ -193,9 +201,9 @@ class ProjectPayment(models.Model):
 
             # --- Live ---
             if (payment.live_due_payment <= one_week_later
-                and not payment.live_notification_sent
-                and payment.state in ['pending', 'snoozed']
-                and (not payment.live_snoozed_until or payment.live_snoozed_until <= today)):
+                    and not payment.live_notification_sent
+                    and payment.state in ['pending', 'snoozed']
+                    and (not payment.live_snoozed_until or payment.live_snoozed_until <= today)):
                 self._send_notification(payment, 'Live', payment.live_due_payment)
                 payment.write({'live_notification_sent': True, 'state': 'pending'})
 

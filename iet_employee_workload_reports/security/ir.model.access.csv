@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_employee_workload_report_user,employee.workload.report.user,model_employee_workload_report,project.group_project_user,1,1,1,1
+access_employee_workload_report_manager,employee.workload.report.manager,model_employee_workload_report,project.group_project_manager,1,1,1,1
+access_employee_workload_report_line_user,employee.workload.report.line.user,model_employee_workload_report_line,project.group_project_user,1,0,0,0
+access_employee_workload_report_line_manager,employee.workload.report.line.manager,model_employee_workload_report_line,project.group_project_manager,1,1,1,1
+access_employee_per_project_report_manager,employee.per.project.report.manager,model_employee_per_project_report,project.group_project_manager,1,1,1,1
+access_employee_per_project_report_line_manager,employee.per.project.report.line.manager,model_employee_per_project_report_line,project.group_project_manager,1,1,1,1
+access_project_planned_actual_report_manager,project.planned.actual.report.manager,model_project_planned_actual_report,project.group_project_manager,1,1,1,1
+access_project_planned_actual_report_line_manager,project.planned.actual.report.line.manager,model_project_planned_actual_report_line,project.group_project_manager,1,1,1,1

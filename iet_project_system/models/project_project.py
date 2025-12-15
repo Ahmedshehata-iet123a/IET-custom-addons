@@ -214,7 +214,7 @@ class Project(models.Model):
             current_date = fields.Date.context_today(project)
             worksheet.merge_range('E1:F1', f'Date: {current_date.strftime("%Y-%m-%d")}', date_format)
 
-            headers = ["Task Name", "Planned Start Date", "Actual Start Date",
+            headers = ["Task Name", "Planned Start Date","Actual Start Date",
                        "Planned End Date", "Actual End Date", "Task Owner", "Done", "Comments"]
             header_row = 3
             for col, header in enumerate(headers):

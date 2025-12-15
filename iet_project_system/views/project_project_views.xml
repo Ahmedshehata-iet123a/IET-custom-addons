@@ -61,7 +61,7 @@
                             <field name="status" column_invisible="1" invisible="display_type == 'line_section'"/>
                             <field name="comments" invisible="display_type == 'line_section'"/>
                             <field name="planned_duration"/>
-                            <field name="actual_duration"/>
+<!--                            <field name="actual_duration"/>-->
                         </list>
                     </field>
                 </page>

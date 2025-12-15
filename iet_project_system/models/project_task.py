@@ -4,6 +4,7 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
@@ -14,6 +15,7 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         # التحقق من المتطلبات قبل تغيير المرحلة
+        print("llllllllllllllllllllllllll")
         if not self.env.context.get('skip_stage_validation') and 'stage_id' in vals:
             for task in self:
                 stage = self.env['project.task.type'].browse(vals['stage_id'])
@@ -26,22 +28,35 @@ class ProjectTask(models.Model):
                     if not allocated_hours:
                         raise ValidationError(_("You must fill in 'Allocated Hours' before changing stage."))
 
+        # أولاً نحدث الـ task نفسه
         res = super(ProjectTask, self).write(vals)
+        print("llllllllllllllllllllllllll")
 
         if self.env.context.get('skip_plan_line_update'):
             return res
 
+        # تحديث الـ plan line المرتبطة بالـ task
         plan_line_model = self.env['project.plan.line']
 
         for rec in self:
-            stage = rec.stage_id
-            stage_name = (stage.name or "").lower()
-            is_done = getattr(stage, 'is_closed', False) or 'done' in stage_name
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>")
             plan_line = plan_line_model.search([('task_id', '=', rec.id)], limit=1)
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>",plan_line.id)
+
             if plan_line:
-                plan_line.with_context(skip_task_update=True).sudo().write({'status_done': is_done})
-            if 'status_done' not in vals:
-                rec.status_done = is_done
+                print(">>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+                # إعداد الحقول الصحيحة فقط للـ plan line
+                plan_vals = {
+                    'status_done': rec.is_closed,
+                }
+                print(plan_vals)
+                if rec.is_closed and not plan_line.actual_end_date:
+                    plan_vals['actual_end_date'] = fields.Date.today()
+                    print(plan_vals)
+
+                # نكتب القيم الآمنة فقط
+                plan_line.with_context(skip_task_update=True).sudo().write(plan_vals)
 
         return res
 

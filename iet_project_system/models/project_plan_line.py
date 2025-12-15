@@ -46,11 +46,11 @@ class ProjectPlanLine(models.Model):
                     if done_stage:
                         line.task_id.stage_id = done_stage.id
                         line.task_id.is_closed = True
-                else:
-                    # Optional: move back to first stage if unchecked
-                    first_stage = self.env['project.task.type'].search([], limit=1, order='sequence')
-                    if first_stage:
-                        line.task_id.stage_id = first_stage.id
+                # else:
+                # Optional: move back to first stage if unchecked
+                # first_stage = self.env['project.task.type'].search([], limit=1, order='sequence')
+                # if first_stage:
+                #     line.task_id.stage_id = first_stage.id
 
     def assign_milestones_to_plan_lines(self):
         current_milestone = None
@@ -64,6 +64,7 @@ class ProjectPlanLine(models.Model):
                 line.milestone_id = current_milestone.id if current_milestone else False
 
     @api.depends('planned_start_date', 'planned_end_date', 'actual_start_date', 'actual_end_date', 'project_id')
+    # @api.depends('planned_start_date', 'planned_end_date','project_id')
     def _compute_durations(self):
         for record in self:
             record.planned_duration = 0.0
@@ -95,33 +96,43 @@ class ProjectPlanLine(models.Model):
     def _compute_working_days(self, start_date, end_date, calendar):
         if not start_date or not end_date:
             return 0.0
-        start_dt = start_date.replace(tzinfo=None) if isinstance(start_date, datetime) else start_date
-        end_dt = end_date.replace(tzinfo=None) if isinstance(end_date, datetime) else end_date
+
+        start_dt = start_date if isinstance(start_date, datetime) else datetime.combine(start_date, datetime.min.time())
+        end_dt = end_date if isinstance(end_date, datetime) else datetime.combine(end_date, datetime.min.time())
+
         leaves = self.env['resource.calendar.leaves'].search([
             ('calendar_id', '=', calendar.id),
             ('date_from', '<=', end_dt),
             ('date_to', '>=', start_dt)
         ])
-        current_date = start_dt
+
         working_days = 0.0
         delta = end_dt - start_dt
+
         for i in range(delta.days + 1):
-            day = current_date + timedelta(days=i)
-            if day.weekday() in [4, 5]:
+            day_dt = start_dt + timedelta(days=i)
+
+            # weekend
+            if day_dt.weekday() in [4, 5]:
                 continue
+
+            # check if holiday
             is_holiday = False
             for leave in leaves:
                 leave_start = leave.date_from.replace(tzinfo=None)
                 leave_end = leave.date_to.replace(tzinfo=None)
-                if leave_start <= day <= leave_end:
+                if leave_start <= day_dt <= leave_end:
                     is_holiday = True
                     break
 
             if not is_holiday:
                 working_days += 1.0
+
+        # جزء الساعات لو موجودة
         if delta.seconds > 0:
             hours = delta.seconds / 3600.0
             working_days += hours / 8.0
+
         return working_days
 
     @api.model
@@ -143,14 +154,14 @@ class ProjectPlanLine(models.Model):
                         for line in self:
                             if line.task_id:
                                 if vals['status_done']:
-                                    done_stage = self.env['project.task.type'].search([('fold', '=', True)], limit=1)
+                                    # done_stage = self.env['project.task.type'].search([('fold', '=', True)], limit=1)
                                     update_vals = {
                                         'is_closed': True,
                                         'status_done': True,
                                         'state': '1_done',
                                     }
-                                    if done_stage:
-                                        update_vals['stage_id'] = done_stage.id
+                                    # if done_stage:
+                                    #     update_vals['stage_id'] = done_stage.id
 
                                     line.task_id.with_context(skip_plan_line_update=True).sudo().write(update_vals)
 
@@ -163,8 +174,8 @@ class ProjectPlanLine(models.Model):
                                         'status_done': False,
                                         'state': '01_in_progress',
                                     }
-                                    if last_open_stage:
-                                        update_vals['stage_id'] = last_open_stage.id
+                                    # if last_open_stage:
+                                    #     update_vals['stage_id'] = last_open_stage.id
 
                                     line.task_id.with_context(skip_plan_line_update=True).sudo().write(update_vals)
 

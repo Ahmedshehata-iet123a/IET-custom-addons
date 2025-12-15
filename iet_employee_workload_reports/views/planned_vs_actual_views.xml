@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree View للتقرير الرئيسي -->
+    <record id="view_project_planned_actual_report_list" model="ir.ui.view">
+        <field name="name">project.planned.actual.report.list</field>
+        <field name="model">project.planned.actual.report</field>
+        <field name="arch" type="xml">
+            <list string="Planned vs Actual Reports">
+                <field name="name"/>
+<!--                <field name="date_from"/>-->
+<!--                <field name="date_to"/>-->
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View للتقرير الرئيسي -->
+    <record id="view_project_planned_actual_report_form" model="ir.ui.view">
+        <field name="name">project.planned.actual.report.form</field>
+        <field name="model">project.planned.actual.report</field>
+        <field name="arch" type="xml">
+            <form string="Planned vs Actual Report">
+                <header>
+                    <button name="action_generate_report"
+                            string="Generate Report"
+                            type="object"
+                            class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+<!--                            <field name="date_from"/>-->
+<!--                            <field name="date_to"/>-->
+                        </group>
+                        <group>
+                            <field name="project_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Report Lines">
+                            <field name="line_ids" nolabel="1">
+                                <list string="Report Lines"
+                                      create="false" edit="false">
+                                    <field name="project_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="user_id"/>
+<!--                                    <field name="planned_start_date"/>-->
+<!--                                    <field name="actual_start_date"/>-->
+<!--                                    <field name="start_variance_display"/>-->
+<!--                                    <field name="planned_end_date"/>-->
+<!--                                    <field name="actual_end_date"/>-->
+<!--                                    <field name="end_variance_display"/>-->
+                                    <field name="planned_hours" sum="Total Planned"/>
+                                    <field name="actual_hours" sum="Total Actual"/>
+                                    <field name="hours_variance_display"/>
+<!--                                    <field name="status" widget="badge"-->
+<!--                                           decoration-success="status == 'on_time' or status == 'early'"-->
+<!--                                           decoration-warning="status == 'on_track'"-->
+<!--                                           decoration-danger="status == 'delayed'"/>-->
+<!--                                    <field name="start_variance_days" column_invisible="1"/>-->
+<!--                                    <field name="end_variance_days" column_invisible="1"/>-->
+<!--                                    <field name="hours_variance" column_invisible="1"/>-->
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View للتقرير الرئيسي -->
+    <record id="view_project_planned_actual_report_search" model="ir.ui.view">
+        <field name="name">project.planned.actual.report.search</field>
+        <field name="model">project.planned.actual.report</field>
+        <field name="arch" type="xml">
+            <search string="Search Reports">
+                <field name="name"/>
+                <field name="project_ids"/>
+                <filter string="This Month" name="this_month"
+                        domain="[('create_date', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-01')),
+                                 ('create_date', '&lt;=', (context_today()).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Creation Date" name="group_create_date"
+                            context="{'group_by': 'create_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Form View لسطور التقرير -->
+    <record id="view_project_planned_actual_report_line_form" model="ir.ui.view">
+        <field name="name">project.planned.actual.report.line.form</field>
+        <field name="model">project.planned.actual.report.line</field>
+        <field name="arch" type="xml">
+            <form string="Report Line Details">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(project.act_project_project_2_project_task_all)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-tasks"
+                                context="{'search_default_project_id': project_id}">
+                            <field string="Tasks" name="project_id" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group string="Project Information">
+                            <field name="project_id"/>
+                            <field name="partner_id"/>
+                            <field name="user_id"/>
+                            <field name="status" widget="badge"
+                                   decoration-success="status == 'on_time' or status == 'early'"
+                                   decoration-warning="status == 'on_track'"
+                                   decoration-danger="status == 'delayed'"/>
+                        </group>
+                    </group>
+
+                    <group string="Dates Comparison">
+                        <group string="Start Dates">
+                            <field name="planned_start_date"/>
+                            <field name="actual_start_date"/>
+                            <field name="start_variance_days"/>
+                            <field name="start_variance_display" readonly="1"/>
+                        </group>
+                        <group string="End Dates">
+                            <field name="planned_end_date"/>
+                            <field name="actual_end_date"/>
+                            <field name="end_variance_days"/>
+                            <field name="end_variance_display" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View لسطور التقرير -->
+<!--    <record id="view_project_planned_actual_report_line_list" model="ir.ui.view">-->
+<!--        <field name="name">project.planned.actual.report.line.list</field>-->
+<!--        <field name="model">project.planned.actual.report.line</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <list string="Report Lines"-->
+<!--                  decoration-success="status == 'on_time' or status == 'early'"-->
+<!--                  decoration-warning="status == 'on_track'"-->
+<!--                  decoration-danger="status == 'delayed'"-->
+<!--                  create="false" edit="false">-->
+<!--                <field name="project_id"/>-->
+<!--                <field name="partner_id"/>-->
+<!--                <field name="user_id"/>-->
+<!--                <field name="planned_start_date"/>-->
+<!--                <field name="actual_start_date"/>-->
+<!--                <field name="start_variance_display"/>-->
+<!--                <field name="planned_end_date"/>-->
+<!--                <field name="actual_end_date"/>-->
+<!--                <field name="end_variance_display"/>-->
+<!--                <field name="planned_hours" sum="Total Planned"/>-->
+<!--                <field name="actual_hours" sum="Total Actual"/>-->
+<!--                <field name="hours_variance_display"/>-->
+<!--                <field name="status" widget="badge"-->
+<!--                       decoration-success="status == 'on_time' or status == 'early'"-->
+<!--                       decoration-warning="status == 'on_track'"-->
+<!--                       decoration-danger="status == 'delayed'"/>-->
+<!--                <field name="start_variance_days" column_invisible="1"/>-->
+<!--                <field name="end_variance_days" column_invisible="1"/>-->
+<!--                <field name="hours_variance" column_invisible="1"/>-->
+<!--            </list>-->
+<!--        </field>-->
+<!--    </record>-->
+
+    <!-- Search View لسطور التقرير -->
+    <record id="view_project_planned_actual_report_line_search" model="ir.ui.view">
+        <field name="name">project.planned.actual.report.line.search</field>
+        <field name="model">project.planned.actual.report.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Report Lines">
+                <field name="project_id"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <filter string="Delayed" name="delayed" domain="[('status', '=', 'delayed')]"/>
+                <filter string="On Time" name="on_time" domain="[('status', '=', 'on_time')]"/>
+                <filter string="Early" name="early" domain="[('status', '=', 'early')]"/>
+                <filter string="On Track" name="on_track" domain="[('status', '=', 'on_track')]"/>
+                <separator/>
+                <filter string="Late Start" name="late_start" domain="[('start_variance_days', '&gt;', 0)]"/>
+                <filter string="Late End" name="late_end" domain="[('end_variance_days', '&gt;', 0)]"/>
+<!--                <filter string="Over Budget (Hours)" name="over_budget" domain="[('hours_variance', '&gt;', 0)]"/>-->
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Project Manager" name="group_manager" context="{'group_by': 'user_id'}"/>
+                    <filter string="Customer" name="group_customer" context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Pivot View لسطور التقرير -->
+    <record id="view_project_planned_actual_report_line_pivot" model="ir.ui.view">
+        <field name="name">project.planned.actual.report.line.pivot</field>
+        <field name="model">project.planned.actual.report.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Planned vs Actual Analysis">
+                <field name="status" type="col"/>
+                <field name="project_id" type="row"/>
+<!--                <field name="planned_hours" type="measure"/>-->
+<!--                <field name="actual_hours" type="measure"/>-->
+<!--                <field name="hours_variance" type="measure"/>-->
+                <field name="start_variance_days" type="measure"/>
+                <field name="end_variance_days" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View لسطور التقرير -->
+    <record id="view_project_planned_actual_report_line_graph" model="ir.ui.view">
+        <field name="name">project.planned.actual.report.line.graph</field>
+        <field name="model">project.planned.actual.report.line</field>
+        <field name="arch" type="xml">
+            <graph string="Planned vs Actual Analysis" type="bar">
+                <field name="project_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Action للتقرير الرئيسي -->
+    <record id="action_project_planned_actual_report" model="ir.actions.act_window">
+        <field name="name">Planned vs Actual Reports</field>
+        <field name="res_model">project.planned.actual.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Planned vs Actual Report
+            </p>
+            <p>
+                Compare planned project dates and hours with actual performance.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action لسطور التقرير -->
+    <record id="action_project_planned_actual_report_line" model="ir.actions.act_window">
+        <field name="name">Planned vs Actual Analysis</field>
+        <field name="res_model">project.planned.actual.report.line</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="context">{'search_default_delayed': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No report data available
+            </p>
+            <p>
+                Generate a report first to see the analysis.
+            </p>
+        </field>
+    </record>
+
+</odoo>

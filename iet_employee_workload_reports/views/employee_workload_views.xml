@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree View للتقرير الرئيسي -->
+    <record id="view_employee_workload_report_list" model="ir.ui.view">
+        <field name="name">employee.workload.report.list</field>
+        <field name="model">employee.workload.report</field>
+        <field name="arch" type="xml">
+            <list string="Workload Reports">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View للتقرير الرئيسي -->
+    <record id="view_employee_workload_report_form" model="ir.ui.view">
+        <field name="name">employee.workload.report.form</field>
+        <field name="model">employee.workload.report</field>
+        <field name="arch" type="xml">
+            <form string="Employee Workload Report">
+                <header>
+                    <button
+                        name="action_generate_report"
+                        string="Generate Report"
+                        type="object"
+                        class="oe_highlight"
+                        icon="fa-calculator"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Report Name..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group>
+                            <field name="project_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Employee Workload" name="workload_lines">
+                            <field name="line_ids">
+                                <list
+                                    decoration-danger="status=='overload'"
+                                    decoration-warning="status=='under'"
+                                    decoration-success="status=='normal'"
+                                    create="false"
+                                    delete="true">
+                                    <field name="employee_id"/>
+                                    <field name="department_id" optional="show"/>
+                                    <field name="job_id" optional="hide"/>
+                                    <field name="capacity_hours" sum="Total Capacity"/>
+                                    <field name="assigned_hours" sum="Total Assigned" widget="float_time"/>
+                                    <field name="load_percentage" widget="progressbar"/>
+                                    <field name="status"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Summary" name="summary">
+                            <group>
+                                <group string="Statistics">
+                                    <field name="line_ids" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_employee_workload_report_search" model="ir.ui.view">
+        <field name="name">employee.workload.report.search</field>
+        <field name="model">employee.workload.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <filter string="Current Month" name="current_month"
+                        domain="[('date_from','&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                ('date_to','&lt;=', (context_today() + relativedelta(day=31)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Last Month" name="last_month"
+                        domain="[('date_from','&gt;=', (context_today() - relativedelta(months=1, day=1)).strftime('%Y-%m-%d')),
+                                ('date_to','&lt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Project" name="group_by_project" context="{'group_by': 'project_id'}"/>
+                    <filter string="Month" name="group_by_month" context="{'group_by': 'date_from:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Tree View لسطور التقرير -->
+    <record id="view_employee_workload_line_list" model="ir.ui.view">
+        <field name="name">employee.workload.report.line.list</field>
+        <field name="model">employee.workload.report.line</field>
+        <field name="arch" type="xml">
+            <list
+                decoration-danger="status=='overload'"
+                decoration-warning="status=='under'"
+                decoration-success="status=='normal'"
+                create="false"
+                edit="false">
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="job_id"/>
+                <field name="capacity_hours" sum="Total Capacity"/>
+                <field name="assigned_hours" sum="Total Assigned"/>
+                <field name="load_percentage" widget="progressbar"/>
+                <field name="status"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Graph View -->
+    <record id="view_employee_workload_line_graph" model="ir.ui.view">
+        <field name="name">employee.workload.report.line.graph</field>
+        <field name="model">employee.workload.report.line</field>
+        <field name="arch" type="xml">
+            <graph string="Workload Analysis" type="bar" sample="1">
+                <field name="employee_id"/>
+                <field name="capacity_hours" type="measure"/>
+                <field name="assigned_hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_employee_workload_line_pivot" model="ir.ui.view">
+        <field name="name">employee.workload.report.line.pivot</field>
+        <field name="model">employee.workload.report.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Workload Pivot" sample="1">
+                <field name="employee_id" type="row"/>
+                <field name="department_id" type="row"/>
+                <field name="capacity_hours" type="measure"/>
+                <field name="assigned_hours" type="measure"/>
+                <field name="load_percentage" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Search View للسطور -->
+    <record id="view_employee_workload_line_search" model="ir.ui.view">
+        <field name="name">employee.workload.report.line.search</field>
+        <field name="model">employee.workload.report.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="job_id"/>
+                <filter string="Overload" name="overload" domain="[('status', '=', 'overload')]"/>
+                <filter string="Normal" name="normal" domain="[('status', '=', 'normal')]"/>
+                <filter string="Under" name="under" domain="[('status', '=', 'under')]"/>
+                <separator/>
+                <filter string="High Load (>90%)" name="high_load" domain="[('load_percentage', '&gt;', 90)]"/>
+                <filter string="Low Load (&lt;60%)" name="low_load" domain="[('load_percentage', '&lt;', 60)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Employee" name="group_by_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Job Position" name="group_by_job" context="{'group_by': 'job_id'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action للتقارير -->
+    <record id="action_employee_workload_report" model="ir.actions.act_window">
+        <field name="name">Workload Reports</field>
+        <field name="res_model">employee.workload.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_current_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first workload report
+            </p>
+            <p>
+                Track employee workload by generating monthly reports.<br/>
+                The system calculates capacity hours (working days - leaves) and compares with assigned hours from timesheets.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action للتحليل -->
+    <record id="action_employee_workload_analysis" model="ir.actions.act_window">
+        <field name="name">Workload Analysis</field>
+        <field name="res_model">employee.workload.report.line</field>
+        <field name="view_mode">list,graph,pivot</field>
+        <field name="context">{'search_default_group_by_department': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No workload data available
+            </p>
+            <p>
+                Generate a workload report first to see the analysis.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu الرئيسي -->
+
+</odoo>

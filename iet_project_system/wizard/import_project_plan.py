@@ -52,9 +52,9 @@ class ProjectImportPlan(models.TransientModel):
                     planned_end = self._parse_date(row[3])
                     actual_end = self._parse_date(row[4])
 
-                    task_owner = row[5] if len(row) > 5 else ''
-                    done = row[6] if len(row) > 6 else ''
-                    comments = row[7] if len(row) > 7 else ''
+                    task_owner = row[5] if len(row) > 4 else ''
+                    done = row[6] if len(row) > 5 else ''
+                    comments = row[7] if len(row) > 6 else ''
 
                     # تحويل Done إلى boolean
                     status_done = str(done).strip().lower() in ['true', '1', 'yes', 'done', 'x']

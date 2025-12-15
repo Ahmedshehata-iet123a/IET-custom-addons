@@ -34,15 +34,15 @@
                     <button name="action_live_done" type="object" string="Done Live"
                             class="btn-primary"
                             invisible="live_done or not uat_done or state == 'completed'"/>
-<!--                    <button name="action_snooze_uat" type="object" string="Snooze UAT"-->
-<!--                            class="btn-warning"-->
-<!--                            invisible="uat_snooze_count >= 2 or not uat_notification_sent or state == 'completed'"/>-->
-<!--                    <button name="action_snooze_live" type="object" string="Snooze Live"-->
-<!--                            class="btn-warning"-->
-<!--                            invisible="live_snooze_count >= 2 or not live_notification_sent or state == 'completed'"/>-->
-<!--                    <button name="action_snooze_contract" type="object" string="Snooze Contract"-->
-<!--                            class="btn-warning"-->
-<!--                            invisible="contract_snooze_count >= 2 or not contract_notification_sent or state == 'completed'"/>completed-->
+                    <!--                    <button name="action_snooze_uat" type="object" string="Snooze UAT"-->
+                    <!--                            class="btn-warning"-->
+                    <!--                            invisible="uat_snooze_count >= 2 or not uat_notification_sent or state == 'completed'"/>-->
+                    <!--                    <button name="action_snooze_live" type="object" string="Snooze Live"-->
+                    <!--                            class="btn-warning"-->
+                    <!--                            invisible="live_snooze_count >= 2 or not live_notification_sent or state == 'completed'"/>-->
+                    <!--                    <button name="action_snooze_contract" type="object" string="Snooze Contract"-->
+                    <!--                            class="btn-warning"-->
+                    <!--                            invisible="contract_snooze_count >= 2 or not contract_notification_sent or state == 'completed'"/>completed-->
                     <field name="state" widget="statusbar" statusbar_visible="pending,completed"/>
                 </header>
                 <sheet>
@@ -54,10 +54,13 @@
                         <group>
                             <field name="contract_payment_date"/>
                             <field name="contract_done" widget="boolean_toggle" readonly="1"/>
+                            <field name="contract_done_date" readonly="1"/>
                             <field name="uat_due_payment"/>
                             <field name="uat_done" widget="boolean_toggle" readonly="1"/>
+                            <field name="uat_done_date" readonly="1"/>
                             <field name="live_due_payment"/>
                             <field name="live_done" widget="boolean_toggle" readonly="1"/>
+                            <field name="live_done_date" readonly="1"/>
                         </group>
                     </group>
                     <group string="Notification Status" invisible="1">
