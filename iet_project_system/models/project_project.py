@@ -116,12 +116,48 @@ class Project(models.Model):
                             _logger.info("Bell notification sent to %s", user.name)
                         except Exception as e:
                             _logger.error("Failed to send notification to %s: %s", user.name, str(e))
-    @api.depends('project_plan_line_ids.status_done')
+
+    @api.depends('project_plan_line_ids.status_done', 'project_plan_line_ids.milestone_weight',
+                 'project_plan_line_ids.display_type')
     def _compute_completion_percent(self):
         for project in self:
-            total = len(project.project_plan_line_ids)
-            done = len(project.project_plan_line_ids.filtered(lambda l: l.status_done))
-            project.completion_percent = (done / total) * 100 if total else 0
+            # Check if any section has a weight defined
+            has_weights = any(l.milestone_weight > 0 for l in project.project_plan_line_ids)
+
+            if not has_weights:
+                # Original Logic
+                total = len(project.project_plan_line_ids)
+                done = len(project.project_plan_line_ids.filtered(lambda l: l.status_done))
+                project.completion_percent = (done / total) * 100 if total else 0
+            else:
+                # Weighted Logic
+                total_percent = 0.0
+                current_weight = 0.0
+                current_tasks = []
+
+                for line in project.project_plan_line_ids:
+                    if line.display_type == 'line_section':
+                        # Process previous section
+                        if current_tasks and current_weight > 0:
+                            done_count = sum(1 for t in current_tasks if t.status_done)
+                            total_count = len(current_tasks)
+                            if total_count > 0:
+                                total_percent += (done_count / total_count) * current_weight
+
+                        # Start new section
+                        current_weight = line.milestone_weight
+                        current_tasks = []
+                    elif not line.display_type:
+                        current_tasks.append(line)
+
+                # Process last section
+                if current_tasks and current_weight > 0:
+                    done_count = sum(1 for t in current_tasks if t.status_done)
+                    total_count = len(current_tasks)
+                    if total_count > 0:
+                        total_percent += (done_count / total_count) * current_weight
+
+                project.completion_percent = total_percent
 
     def action_generate_tasks(self):
         Task = self.env['project.task']
@@ -137,6 +173,9 @@ class Project(models.Model):
                 continue
 
             for plan_line in project.project_plan_line_ids.filtered(lambda l: not l.display_type):
+                if plan_line.task_id:
+                    continue
+
                 vals = {
                     'name': plan_line.name,
                     'project_id': project.id,
@@ -148,41 +187,95 @@ class Project(models.Model):
                     'stage_id': task_type_ids[0].id,
                 }
                 _logger.info("Creating task with vals: %s", vals)
-                Task.create(vals)
+                task = Task.create(vals)
+                plan_line.task_id = task
 
     def action_update_tasks(self):
         Task = self.env['project.task']
+
         for project in self:
             project.hide_button = True
             project.project_plan_line_ids.assign_milestones_to_plan_lines()
+
             task_type_ids = self.env['project.task.type'].search([
                 ('generate_tasks', '=', True),
                 ('project_ids', 'in', [project.id])
-            ])
+            ], limit=1)
+
             if not task_type_ids:
-                _logger.warning("No task types found for project %s with generate_tasks=True", project.name)
+                _logger.warning("No task types found for project %s", project.name)
                 continue
 
+            # Tasks already linked to plan lines
+            already_linked = project.project_plan_line_ids.filtered('task_id').mapped('task_id.id')
+
             for plan_line in project.project_plan_line_ids.filtered(lambda l: not l.display_type):
-                vals = {
-                    'name': plan_line.name,
-                    'project_id': project.id,
-                    'date_start': plan_line.planned_start_date,
-                    'end_date': plan_line.planned_end_date,
-                    'team_name': project.team_id.name,
-                    'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
-                    'milestone_id': plan_line.milestone_id.id if plan_line.milestone_id else False,
-                    'stage_id': task_type_ids[0].id,
 
-                }
+                # 1️⃣ لو مفيش Task مربوطة – حاول تربط Task موجودة
+                if not plan_line.task_id:
+                    existing_task = Task.search([
+                        ('project_id', '=', project.id),
+                        ('name', '=', plan_line.name),
+                        ('id', 'not in', already_linked)
+                    ], order='create_date desc', limit=1)
 
+                    if existing_task:
+                        plan_line.task_id = existing_task
+                        already_linked.append(existing_task.id)
+
+                # 2️⃣ لو فيه Task مربوطة → Update فقط
                 if plan_line.task_id:
-                    _logger.info("Updating task %s with vals: %s", plan_line.task_id.id, vals)
-                    plan_line.task_id.with_context(skip_stage_validation=True).write(vals)
+                    update_vals = {}
+
+                    # Name
+                    if plan_line.task_id.name != plan_line.name:
+                        update_vals['name'] = plan_line.name
+
+                    # Dates
+                    if plan_line.task_id.date_start != plan_line.planned_start_date:
+                        update_vals['date_start'] = plan_line.planned_start_date
+
+                    if plan_line.task_id.end_date != plan_line.planned_end_date:
+                        update_vals['end_date'] = plan_line.planned_end_date
+
+                    # Milestone
+                    if plan_line.task_id.milestone_id != plan_line.milestone_id:
+                        update_vals['milestone_id'] = (
+                            plan_line.milestone_id.id if plan_line.milestone_id else False
+                        )
+
+                    # Team Name
+                    if plan_line.task_id.team_name != project.team_id.name:
+                        update_vals['team_name'] = project.team_id.name
+
+                    # ⚠️ لا نغير stage ولا project ولا users
+                    if update_vals:
+                        _logger.info(
+                            "Updating task %s with vals: %s",
+                            plan_line.task_id.id,
+                            update_vals
+                        )
+                        plan_line.task_id.with_context(
+                            skip_stage_validation=True
+                        ).write(update_vals)
+
+                # 3️⃣ لو مفيش Task نهائي → أنشئ واحدة جديدة
                 else:
+                    vals = {
+                        'name': plan_line.name,
+                        'project_id': project.id,
+                        'stage_id': task_type_ids.id,
+                        'date_start': plan_line.planned_start_date,
+                        'end_date': plan_line.planned_end_date,
+                        'team_name': project.team_id.name,
+                        'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
+                        'milestone_id': plan_line.milestone_id.id if plan_line.milestone_id else False,
+                    }
+
                     _logger.info("Creating new task with vals: %s", vals)
-                    task = Task.with_context(skip_stage_validation=True).create(vals)
+                    task = Task.create(vals)
                     plan_line.task_id = task
+                    already_linked.append(task.id)
 
     def action_print_project_plan(self):
         for project in self:
@@ -195,7 +288,7 @@ class Project(models.Model):
             title_format = workbook.add_format({'bold': True, 'font_size': 14})
             date_format = workbook.add_format({'italic': True, 'align': 'right'})
 
-            worksheet.set_column('A:H', 22)
+            worksheet.set_column('A:J', 22)
 
             logo = project.company_id.logo
             if logo:
@@ -204,8 +297,6 @@ class Project(models.Model):
                     'image_data': image_data,
                     'x_scale': 0.5,
                     'y_scale': 0.5,
-                    'x_offset': 0,
-                    'y_offset': 0,
                     'object_position': 1
                 })
 
@@ -214,28 +305,44 @@ class Project(models.Model):
             current_date = fields.Date.context_today(project)
             worksheet.merge_range('E1:F1', f'Date: {current_date.strftime("%Y-%m-%d")}', date_format)
 
-            headers = ["Task Name", "Planned Start Date","Actual Start Date",
-                       "Planned End Date", "Actual End Date", "Task Owner", "Done", "Comments"]
+            # ✅ Headers بعد الإضافة
+            headers = [
+                "Task Name",
+                "Type",
+                "Extra Field",
+                "Planned Start Date",
+                "Actual Start Date",
+                "Planned End Date",
+                "Actual End Date",
+                "Task Owner",
+                "Done",
+                "Comments"
+            ]
+
             header_row = 3
             for col, header in enumerate(headers):
                 worksheet.write(header_row, col, header, header_format)
 
             row = header_row + 1
 
-            plan_lines = project.project_plan_line_ids
-            for line in plan_lines:
+            for line in project.project_plan_line_ids:
                 worksheet.write(row, 0, line.name or '', task_format)
-                worksheet.write(row, 1, line.planned_start_date.strftime(
-                    "%Y-%m-%d %H:%M") if line.planned_start_date else '', task_format)
-                worksheet.write(row, 2, line.actual_start_date.strftime(
-                    "%Y-%m-%d %H:%M") if line.actual_start_date else '', task_format)
-                worksheet.write(row, 3, line.planned_end_date.strftime(
-                    "%Y-%m-%d %H:%M") if line.planned_end_date else '', task_format)
-                worksheet.write(row, 4, line.actual_end_date.strftime(
-                    "%Y-%m-%d %H:%M") if line.actual_end_date else '', task_format)
-                worksheet.write(row, 5, line.task_owner or '', task_format)
-                worksheet.write(row, 6, line.status_done or '', task_format)
-                worksheet.write(row, 7, line.comments or '', task_format)
+                worksheet.write(row, 1, line.milestone_type or '', task_format)
+                worksheet.write(row, 2, line.milestone_weight or '', task_format)
+                worksheet.write(row, 3,
+                                line.planned_start_date.strftime("%Y-%m-%d %H:%M") if line.planned_start_date else '',
+                                task_format)
+                worksheet.write(row, 4,
+                                line.actual_start_date.strftime("%Y-%m-%d %H:%M") if line.actual_start_date else '',
+                                task_format)
+                worksheet.write(row, 5,
+                                line.planned_end_date.strftime("%Y-%m-%d %H:%M") if line.planned_end_date else '',
+                                task_format)
+                worksheet.write(row, 6, line.actual_end_date.strftime("%Y-%m-%d %H:%M") if line.actual_end_date else '',
+                                task_format)
+                worksheet.write(row, 7, line.task_owner or '', task_format)
+                worksheet.write(row, 8, line.status_done or '', task_format)
+                worksheet.write(row, 9, line.comments or '', task_format)
                 row += 1
 
             workbook.close()
@@ -250,10 +357,9 @@ class Project(models.Model):
                 'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             })
 
-            download_url = f'/web/content/{attachment.id}?download=true'
             return {
                 'type': 'ir.actions.act_url',
-                'url': download_url,
+                'url': f'/web/content/{attachment.id}?download=true',
                 'target': 'self',
             }
 
@@ -349,4 +455,3 @@ class Project(models.Model):
         action = self.env["ir.actions.actions"]._for_xml_id("iet_project_system.action_import_project_plan_wizard")
 
         return action
-

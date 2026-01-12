@@ -34,6 +34,12 @@ class ProjectPlanLine(models.Model):
     )
     milestone_id = fields.Many2one('project.milestone', string='Milestone')
     status_done = fields.Boolean(string='Done ✅', default=False)
+    milestone_type = fields.Selection([
+        ('gap_analysis', 'Gap Analysis'),
+        ('implementation', 'Implementation'),
+        ('training', 'Training')
+    ], string="Milestone Type")
+    milestone_weight = fields.Integer(string="Weight (%)")
 
     @api.onchange('status_done')
     def _onchange_status_done(self):

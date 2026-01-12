@@ -47,6 +47,8 @@
                             </control>
                             <field name="display_type" column_invisible="True"/>
                             <field name="name" required="1"/>
+                            <field name="milestone_type" invisible="display_type != 'line_section'"/>
+                            <field name="milestone_weight" invisible="display_type != 'line_section'"/>
                             <field name="planned_start_date"
                             />
                             <field name="milestone_id" column_invisible="1"/>
