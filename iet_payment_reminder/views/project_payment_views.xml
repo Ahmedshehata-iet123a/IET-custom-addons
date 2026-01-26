@@ -54,13 +54,13 @@
                         <group>
                             <field name="contract_payment_date"/>
                             <field name="contract_done" widget="boolean_toggle" readonly="1"/>
-                            <field name="contract_done_date" readonly="1"/>
+                            <field name="contract_done_date" />
                             <field name="uat_due_payment"/>
                             <field name="uat_done" widget="boolean_toggle" readonly="1"/>
-                            <field name="uat_done_date" readonly="1"/>
+                            <field name="uat_done_date"/>
                             <field name="live_due_payment"/>
                             <field name="live_done" widget="boolean_toggle" readonly="1"/>
-                            <field name="live_done_date" readonly="1"/>
+                            <field name="live_done_date" />
                         </group>
                     </group>
                     <group string="Notification Status" invisible="1">

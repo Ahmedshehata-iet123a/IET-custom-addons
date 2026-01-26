@@ -8,7 +8,8 @@
         <field name="arch" type="xml">
             <list string="Workload Reports">
                 <field name="name"/>
-                <field name="project_id"/>
+                <field name="project_ids" widget="many2many_tags"/>
+                <field name="employee_id"/>
                 <field name="date_from"/>
                 <field name="date_to"/>
             </list>
@@ -23,11 +24,11 @@
             <form string="Employee Workload Report">
                 <header>
                     <button
-                        name="action_generate_report"
-                        string="Generate Report"
-                        type="object"
-                        class="oe_highlight"
-                        icon="fa-calculator"/>
+                            name="action_generate_report"
+                            string="Generate Report"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-calculator"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -41,7 +42,8 @@
                             <field name="date_to"/>
                         </group>
                         <group>
-                            <field name="project_id" options="{'no_create': True}"/>
+                            <field name="project_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                            <field name="employee_id" options="{'no_create': True}"/>
                         </group>
                     </group>
 
@@ -49,18 +51,30 @@
                         <page string="Employee Workload" name="workload_lines">
                             <field name="line_ids">
                                 <list
-                                    decoration-danger="status=='overload'"
-                                    decoration-warning="status=='under'"
-                                    decoration-success="status=='normal'"
-                                    create="false"
-                                    delete="true">
-                                    <field name="employee_id"/>
-                                    <field name="department_id" optional="show"/>
-                                    <field name="job_id" optional="hide"/>
-                                    <field name="capacity_hours" sum="Total Capacity"/>
-                                    <field name="assigned_hours" sum="Total Assigned" widget="float_time"/>
-                                    <field name="load_percentage" widget="progressbar"/>
-                                    <field name="status"/>
+                                        decoration-danger="status=='overload'"
+                                        decoration-warning="status=='under'"
+                                        decoration-success="status=='normal'"
+                                        create="false"
+                                        delete="true"
+                                        editable="bottom">
+                                    <field name="project_id" readonly="1"/>
+                                    <field name="employee_id" readonly="1"/>
+                                    <field name="department_id" optional="show" readonly="1"/>
+                                    <field name="job_id" optional="hide" readonly="1"/>
+                                    <field name="capacity_hours" readonly="1"/>
+                                    <field name="assigned_hours" sum="Total Assigned" widget="float_time" readonly="1"/>
+                                    <field name="planned_duration" readonly="1"/>
+                                    <field name="days_passed" readonly="1"/>
+                                    <field name="expected_progress" readonly="1"/>
+                                    <field name="actual_progress" readonly="1"/>
+                                    <field name="delay_days" readonly="1"/>
+                                    <field name="project_stage_id" readonly="1"/>
+                                    <field name="schedule_status" widget="badge"
+                                           decoration-success="schedule_status == 'on_track'"
+                                           decoration-warning="schedule_status == 'at_risk'"
+                                           decoration-danger="schedule_status == 'delayed'" readonly="1"/>
+                                    <field name="load_percentage" widget="progressbar" readonly="1"/>
+                                    <field name="status" readonly="1"/>
                                 </list>
                             </field>
                         </page>
@@ -85,7 +99,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
-                <field name="project_id"/>
+                <field name="project_ids"/>
                 <field name="date_from"/>
                 <field name="date_to"/>
                 <filter string="Current Month" name="current_month"
@@ -95,7 +109,7 @@
                         domain="[('date_from','&gt;=', (context_today() - relativedelta(months=1, day=1)).strftime('%Y-%m-%d')),
                                 ('date_to','&lt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
                 <group expand="0" string="Group By">
-                    <filter string="Project" name="group_by_project" context="{'group_by': 'project_id'}"/>
+                    <filter string="Projects" name="group_by_project" context="{'group_by': 'project_ids'}"/>
                     <filter string="Month" name="group_by_month" context="{'group_by': 'date_from:month'}"/>
                 </group>
             </search>
@@ -108,12 +122,24 @@
         <field name="model">employee.workload.report.line</field>
         <field name="arch" type="xml">
             <list
-                decoration-danger="status=='overload'"
-                decoration-warning="status=='under'"
-                decoration-success="status=='normal'"
-                create="false"
-                edit="false">
+                    decoration-danger="status=='overload'"
+                    decoration-warning="status=='under'"
+                    decoration-success="status=='normal'"
+                    create="false"
+                    edit="false">
                 <field name="employee_id"/>
+                <field name="project_id"/>
+                <field name="project_stage_id" optional="show"/>
+                <!-- Schedule Control -->
+                <field name="planned_duration" optional="show"/>
+                <field name="days_passed" optional="show"/>
+                <field name="expected_progress" widget="percentage" optional="show"/>
+                <field name="actual_progress" widget="percentage" optional="show"/>
+                <field name="delay_days" optional="show"/>
+                <field name="schedule_status" widget="badge"
+                       decoration-success="schedule_status == 'on_track'"
+                       decoration-warning="schedule_status == 'at_risk'"
+                       decoration-danger="schedule_status == 'delayed'" optional="show"/>
                 <field name="department_id"/>
                 <field name="job_id"/>
                 <field name="capacity_hours" sum="Total Capacity"/>
@@ -159,6 +185,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="employee_id"/>
+                <field name="project_id"/>
                 <field name="department_id"/>
                 <field name="job_id"/>
                 <filter string="Overload" name="overload" domain="[('status', '=', 'overload')]"/>
@@ -169,6 +196,7 @@
                 <filter string="Low Load (&lt;60%)" name="low_load" domain="[('load_percentage', '&lt;', 60)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Employee" name="group_by_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Project" name="group_by_project" context="{'group_by': 'project_id'}"/>
                     <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
                     <filter string="Job Position" name="group_by_job" context="{'group_by': 'job_id'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
@@ -188,8 +216,10 @@
                 Create your first workload report
             </p>
             <p>
-                Track employee workload by generating monthly reports.<br/>
-                The system calculates capacity hours (working days - leaves) and compares with assigned hours from timesheets.
+                Track employee workload by generating monthly reports.
+                <br/>
+                The system calculates capacity hours (working days - leaves) and compares with assigned hours from
+                timesheets.
             </p>
         </field>
     </record>

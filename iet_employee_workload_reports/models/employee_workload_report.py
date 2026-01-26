@@ -14,7 +14,8 @@ class EmployeeWorkloadReport(models.Model):
     name = fields.Char(string='Report Name', required=True)
     date_from = fields.Date(string='From Date', required=True)
     date_to = fields.Date(string='To Date', required=True)
-    project_id = fields.Many2one('project.project', string='Project')
+    project_ids = fields.Many2many('project.project', string='Projects')
+    employee_id = fields.Many2one('hr.employee', string='Employee')
     line_ids = fields.One2many('employee.workload.report.line', 'report_id', string='Workload Lines')
 
     @api.model
@@ -32,58 +33,157 @@ class EmployeeWorkloadReport(models.Model):
         return res
 
     def action_generate_report(self):
-        """توليد تقرير الأحمال للموظفين"""
+        """توليد تقرير الأحمال للموظفين مع تفاصيل المشاريع"""
         self.ensure_one()
 
         # حذف السطور القديمة
         self.line_ids.unlink()
 
-        # جلب الموظفين
-        if self.project_id:
-            # موظفين المشروع المحدد
-            tasks = self.env['project.task'].search([
-                ('project_id', '=', self.project_id.id),
-                ('user_ids', '!=', False)
-            ])
-            # جمع كل الموظفين من المهام
-            employees = self.env['hr.employee']
-            for task in tasks:
-                employees |= task.user_ids.mapped('employee_id')
-        else:
-            # كل الموظفين النشطين
-            employees = self.env['hr.employee'].search([('active', '=', True)])
+        # 1. تحديد نطاق البحث عن التايم شيت
+        domain = [
+            ('date', '>=', self.date_from),
+            ('date', '<=', self.date_to),
+            ('employee_id', '!=', False)
+        ]
 
-        employees = employees.filtered(lambda e: e.active)
+        # فلترة حسب الموظف
+        if self.employee_id:
+            domain.append(('employee_id', '=', self.employee_id.id))
 
-        for employee in employees:
-            # حساب ساعات السعة
-            capacity_hours = self._calculate_capacity_hours(employee)
+        # فلترة حسب المشاريع (Many2many)
+        if self.project_ids:
+            domain.append(('project_id', 'in', self.project_ids.ids))
 
-            # حساب الساعات المسندة من التايم شيت
-            assigned_hours = self._calculate_assigned_hours(employee)
+        # جلب التايم شيت وتجميع البيانات
+        timesheets = self.env['account.analytic.line'].search(domain)
 
-            # حساب نسبة الحمل
-            load_percentage = (assigned_hours / capacity_hours * 100) if assigned_hours > 0 else 0
+        # هيكل البيانات: {employee_id: {project_id: hours, 'total_capacity': capacity}}
+        data = {}
 
-            # تحديد الحالة
-            if load_percentage >= 100:
-                status = 'overload'
-            elif load_percentage >= 80:
-                status = 'normal'
+        # لضمان وجود الموظف حتى لو لم يكن لديه تايم شيت (في حالة الفلتر بدون مشروع أو فلتر بموظف محدد)
+        target_employees = self.env['hr.employee']
+        if self.employee_id:
+            target_employees = self.employee_id
+        elif not self.project_ids:
+            # كل الموظفين النشطين في حالة عدم تحديد مشاريع
+            target_employees = self.env['hr.employee'].search([('active', '=', True)])
+
+        # تهيئة البيانات للموظفين المستهدفين
+        for emp in target_employees:
+            if emp.id not in data:
+                # حساب السعة مرة واحدة للموظف
+                capacity = self._calculate_capacity_hours(emp)
+                data[emp.id] = {
+                    'employee': emp,
+                    'projects': {},
+                    'capacity': capacity
+                }
+
+        # تجميع الساعات من التايم شيت
+        for line in timesheets:
+            emp = line.employee_id
+            if emp.id not in data:
+                # الموظف ظهر في التايم شيت ولم يكن في القائمة الأولية (مثلا عند الفلترة بمشروع)
+                capacity = self._calculate_capacity_hours(emp)
+                data[emp.id] = {
+                    'employee': emp,
+                    'projects': {},
+                    'capacity': capacity
+                }
+
+            proj_id = line.project_id.id if line.project_id else False
+            if proj_id not in data[emp.id]['projects']:
+                data[emp.id]['projects'][proj_id] = 0
+            data[emp.id]['projects'][proj_id] += line.unit_amount
+
+        # إنشاء سطور التقرير
+        for emp_id, emp_data in data.items():
+            capacity = emp_data['capacity']
+            projects = emp_data['projects']
+
+            if not projects:
+                # إذا لم يكن هناك مشاريع (0 ساعات)، ننشئ سطر واحد فارغ للموظف
+                self._create_report_line(emp_data['employee'], False, capacity, 0)
             else:
-                status = 'under'
-
-            # إنشاء سطر التقرير
-            self.env['employee.workload.report.line'].create({
-                'report_id': self.id,
-                'employee_id': employee.id,
-                'capacity_hours': capacity_hours,
-                'assigned_hours': assigned_hours,
-                'load_percentage': load_percentage,
-                'status': status,
-            })
+                # سطر لكل مشروع
+                for proj_id, hours in projects.items():
+                    project = self.env['project.project'].browse(proj_id) if proj_id else False
+                    self._create_report_line(emp_data['employee'], project, capacity, hours)
 
         return True
+
+    def _create_report_line(self, employee, project, capacity, assigned_hours):
+        load_percentage = (assigned_hours / capacity * 100) if capacity > 0 else 0
+
+        if load_percentage >= 100:
+            status = 'overload'
+        elif load_percentage >= 80:
+            status = 'normal'
+        else:
+            status = 'under'
+
+        vals = {
+            'report_id': self.id,
+            'employee_id': employee.id,
+            'project_id': project.id if project else False,
+            'capacity_hours': capacity,
+            'assigned_hours': assigned_hours,
+            'load_percentage': load_percentage,
+            'status': status,
+        }
+
+        # حساب بيانات المشروع
+        if project and project.date_start:
+            metrics = self._calculate_project_metrics(project)
+            vals.update(metrics)
+
+        self.env['employee.workload.report.line'].create(vals)
+
+    def _calculate_project_metrics(self, project):
+        """حساب مقاييس التحكم في الجدول الزمني للمشروع"""
+        today = fields.Date.today()
+        planned_duration = 0
+        if project.date and project.date_start:
+            # حساب أيام العمل بين تاريخ البداية والنهاية
+            calendar = self.env.company.resource_calendar_id
+            start_dt = datetime.combine(project.date_start, datetime.min.time())
+            end_dt = datetime.combine(project.date, datetime.max.time())
+            work_hours = calendar.get_work_hours_count(start_dt, end_dt, compute_leaves=False)
+            planned_duration = work_hours / 8  # تحويل الساعات لأيام (8 ساعات = يوم عمل)
+
+        days_passed = 0
+        if project.date_start and project.date_start <= today:
+            calendar = self.env.company.resource_calendar_id
+            start_dt = datetime.combine(project.date_start, datetime.min.time())
+            end_dt = datetime.combine(today, datetime.max.time())
+            work_hours = calendar.get_work_hours_count(start_dt, end_dt, compute_leaves=False)
+            days_passed = work_hours / 8
+
+        expected_progress = 0
+        if planned_duration > 0:
+            expected_progress = (days_passed / planned_duration) * 100
+
+
+        actual_progress = project.completion_percent if hasattr(project, 'completion_percent') else 0
+
+        variation_percentage = (actual_progress - expected_progress)  # e.g. -10
+        delay_days = (variation_percentage / 100.0) * planned_duration
+
+        if delay_days >= 0:
+            schedule_status = 'on_track'
+        elif delay_days >= -5:
+            schedule_status = 'at_risk'
+        else:
+            schedule_status = 'delayed'
+
+        return {
+            'planned_duration': planned_duration,
+            'days_passed': days_passed,
+            'expected_progress': expected_progress,
+            'actual_progress': actual_progress,
+            'delay_days': delay_days,
+            'schedule_status': schedule_status
+        }
 
     def _calculate_capacity_hours(self, employee):
         """ساعات السعة = ساعات العمل - إجازات الموظف الشخصية مع تجاهل الجمعة والسبت"""
@@ -92,20 +192,17 @@ class EmployeeWorkloadReport(models.Model):
         total_hours = 0
         current_date = self.date_from
         while current_date <= self.date_to:
-            # تجاهل الجمعة (4) والسبت (5)
             if current_date.weekday() not in (4, 5):
                 start_dt = datetime.combine(current_date, datetime.min.time())
                 end_dt = datetime.combine(current_date, datetime.max.time())
                 hours = calendar.get_work_hours_count(start_dt, end_dt, compute_leaves=False)
-                _logger.info("Employee %s - Date %s - Work Hours: %s", employee.name, current_date, hours)
                 total_hours += hours
             current_date += timedelta(days=1)
 
-        # خصم إجازات الموظف الشخصية
         leave_hours = self._calculate_leave_hours(employee)
-        _logger.info("Employee %s - Total Capacity Hours: %s, Leave Hours: %s", employee.name, total_hours, leave_hours)
 
         return total_hours - leave_hours
+
 
     def _calculate_leave_hours(self, employee):
         """حساب ساعات الإجازات (يوم كامل = 8 ساعات، ربع = 2 ساعة)"""
@@ -134,32 +231,29 @@ class EmployeeWorkloadReport(models.Model):
 
         return total_hours
 
-    def _calculate_assigned_hours(self, employee):
-        """حساب الساعات المسندة من التايم شيت"""
-        domain = [
-            ('employee_id', '=', employee.id),
-            ('date', '>=', self.date_from),
-            ('date', '<=', self.date_to),
-        ]
-
-        # لو في مشروع محدد
-        if self.project_id:
-            domain.append(('project_id', '=', self.project_id.id))
-
-        timesheets = self.env['account.analytic.line'].search(domain)
-        assigned_total = sum(timesheets.mapped('unit_amount'))
-        _logger.info("Employee %s - Assigned Hours from Timesheets: %s", employee.name, assigned_total)
-
-        return assigned_total
-
 
 class EmployeeWorkloadReportLine(models.Model):
     _name = 'employee.workload.report.line'
     _description = 'Employee Workload Report Line'
-    _order = 'load_percentage desc, employee_id'
+    _order = 'project_id, employee_id, load_percentage desc'
 
     report_id = fields.Many2one('employee.workload.report', string='Report', required=True, ondelete='cascade')
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True)
+    project_id = fields.Many2one('project.project', string='Project')
+    project_stage_id = fields.Many2one('project.project.stage', string='Project Stage', related='project_id.stage_id', store=True)
+
+    # Project Schedule Control Fields
+    planned_duration = fields.Float(string='Planned Duration (Days)', digits=(10, 1))
+    days_passed = fields.Float(string='Days Passed', digits=(10, 1))
+    expected_progress = fields.Float(string='Expected %', digits=(10, 1))
+    actual_progress = fields.Float(string='Actual %', digits=(10, 1))
+    delay_days = fields.Float(string='Delay (Days)', digits=(10, 1))
+    schedule_status = fields.Selection([
+        ('on_track', 'On Track'),
+        ('at_risk', 'At Risk'),
+        ('delayed', 'Delayed')
+    ], string='Schedule Status')
+
     capacity_hours = fields.Float(string='Capacity Hours', digits=(10, 2))
     assigned_hours = fields.Float(string='Assigned Hours', digits=(10, 2))
     load_percentage = fields.Float(string='Load %', digits=(10, 2))

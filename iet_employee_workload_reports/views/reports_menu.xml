@@ -16,10 +16,10 @@
     <!-- PER EMPLOYEE MENUS -->
     <!-- ============================================================ -->
 
-    <!-- Sub Menu: Per Employee Reports -->
+    <!-- Sub Menu: Workload Report -->
     <menuitem
         id="menu_employee_workload_reports"
-        name="Per Employee"
+        name="Workload Report"
         parent="menu_employee_workload_root"
         action="action_employee_workload_report"
         sequence="10"/>
@@ -37,12 +37,12 @@
     <!-- ============================================================ -->
 
     <!-- Sub Menu: Per Project Reports -->
-    <menuitem
-        id="menu_employee_per_project_reports"
-        name="Per Project"
-        parent="menu_employee_workload_root"
-        action="action_employee_per_project_report"
-        sequence="20"/>
+<!--    <menuitem-->
+<!--        id="menu_employee_per_project_reports"-->
+<!--        name="Per Project"-->
+<!--        parent="menu_employee_workload_root"-->
+<!--        action="action_employee_per_project_report"-->
+<!--        sequence="20"/>-->
 
     <!-- Sub Menu: Per Project Analysis -->
 <!--    <menuitem-->

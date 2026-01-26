@@ -45,9 +45,9 @@ class ProjectPayment(models.Model):
     uat_appear = fields.Boolean(default=False)
     live_appear = fields.Boolean(default=False)
 
-    contract_done_date = fields.Datetime(string='Contract Done Date', readonly=True)
-    uat_done_date = fields.Datetime(string='UAT Done Date', readonly=True)
-    live_done_date = fields.Datetime(string='Live Done Date', readonly=True)
+    contract_done_date = fields.Datetime(string='Contract Done Date')
+    uat_done_date = fields.Datetime(string='UAT Done Date' )
+    live_done_date = fields.Datetime(string='Live Done Date' )
 
     # -------------------- State --------------------
     state = fields.Selection([
