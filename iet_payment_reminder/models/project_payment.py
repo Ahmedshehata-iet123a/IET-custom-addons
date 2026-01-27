@@ -24,6 +24,19 @@ class ProjectPayment(models.Model):
     live_due_payment = fields.Date(string='Live Due Payment', required=True, tracking=True)
     notes = fields.Text(string='Notes')
 
+    # -------------------- Installments --------------------
+    has_installments = fields.Boolean(string='Has Support', default=False)
+    installment_count = fields.Selection([
+        ('1', 'Annual'),
+        ('2', 'Semi-Annual'),
+        ('3', 'Three Times'),
+        ('4', 'Quarterly'),
+    ], string='Installment Count', default='1')
+    installment_date_1 = fields.Date(string='Installment Date 1')
+    installment_date_2 = fields.Date(string='Installment Date 2')
+    installment_date_3 = fields.Date(string='Installment Date 3')
+    installment_date_4 = fields.Date(string='Installment Date 4')
+
     # -------------------- Notification & Snooze --------------------
     contract_notification_sent = fields.Boolean(string='Contract Notified', default=False)
     contract_snoozed_until = fields.Date(string='Contract Snoozed Until')
