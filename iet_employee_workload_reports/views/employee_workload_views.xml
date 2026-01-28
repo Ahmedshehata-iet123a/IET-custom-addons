@@ -10,7 +10,8 @@
                 <field name="name"/>
                 <field name="project_ids" widget="many2many_tags"/>
                 <field name="employee_id"/>
-                <field name="create_date"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
             </list>
         </field>
     </record>
@@ -37,45 +38,53 @@
                     </div>
                     <group>
                         <group>
-                            <field name="project_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
                         </group>
                         <group>
+                            <field name="project_ids" widget="many2many_tags" options="{'no_create': True}"/>
                             <field name="employee_id" options="{'no_create': True}"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <page string="Workload Lines" name="workload_lines">
+                        <page string="Employee Workload" name="workload_lines">
                             <field name="line_ids">
                                 <list
-                                        decoration-bf="is_project_line"
+                                        decoration-danger="status=='overload'"
+                                        decoration-warning="status=='under'"
+                                        decoration-success="status=='normal'"
                                         create="false"
                                         delete="true"
                                         editable="bottom">
-                                    <field name="is_project_line" column_invisible="1"/>
-                                    <field name="project_id" readonly="1" invisible="not is_project_line"/>
-                                    <field name="employee_id" readonly="1" invisible="is_project_line"/>
-                                    <field name="department_id" optional="show" readonly="1"
-                                           invisible="is_project_line"/>
-                                    <field name="assigned_hours" sum="Total Assigned" widget="float_time" readonly="1"
-                                           invisible="is_project_line"/>
-
-                                    <field name="planned_duration" readonly="1" invisible="not is_project_line"/>
-                                    <field name="days_passed" readonly="1" invisible="not is_project_line"/>
-                                    <field name="expected_progress" readonly="1" invisible="not is_project_line"/>
-                                    <field name="actual_progress" readonly="1" invisible="not is_project_line"/>
-                                    <field name="delay_days" readonly="1" invisible="not is_project_line"/>
-                                    <field name="project_stage_id" readonly="1" invisible="not is_project_line"/>
+                                    <field name="project_id" readonly="1"/>
+                                    <field name="employee_id" readonly="1"/>
+                                    <field name="department_id" optional="show" readonly="1"/>
+                                    <field name="job_id" optional="hide" readonly="1"/>
+                                    <field name="capacity_hours" readonly="1"/>
+                                    <field name="assigned_hours" sum="Total Assigned" widget="float_time" readonly="1"/>
+                                    <field name="planned_duration" readonly="1"/>
+                                    <field name="days_passed" readonly="1"/>
+                                    <field name="expected_progress" readonly="1"/>
+                                    <field name="actual_progress" readonly="1"/>
+                                    <field name="delay_days" readonly="1"/>
+                                    <field name="project_stage_id" readonly="1"/>
                                     <field name="schedule_status" widget="badge"
                                            decoration-success="schedule_status == 'on_track'"
                                            decoration-warning="schedule_status == 'at_risk'"
-                                           decoration-danger="schedule_status == 'delayed'"
-                                           readonly="1" invisible="not is_project_line"/>
-
-                                    <field name="load_percentage" widget="progressbar" readonly="1" column_invisible="1"/>
-                                    <field name="status" readonly="1" column_invisible="1"/>
+                                           decoration-danger="schedule_status == 'delayed'" readonly="1"/>
+                                    <field name="load_percentage" widget="progressbar" readonly="1"/>
+                                    <field name="status" readonly="1"/>
                                 </list>
                             </field>
+                        </page>
+
+                        <page string="Summary" name="summary">
+                            <group>
+                                <group string="Statistics">
+                                    <field name="line_ids" invisible="1"/>
+                                </group>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -91,13 +100,21 @@
             <search>
                 <field name="name"/>
                 <field name="project_ids"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <filter string="Current Month" name="current_month"
+                        domain="[('date_from','&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                ('date_to','&lt;=', (context_today() + relativedelta(day=31)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Last Month" name="last_month"
+                        domain="[('date_from','&gt;=', (context_today() - relativedelta(months=1, day=1)).strftime('%Y-%m-%d')),
+                                ('date_to','&lt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
                 <group expand="0" string="Group By">
                     <filter string="Projects" name="group_by_project" context="{'group_by': 'project_ids'}"/>
+                    <filter string="Month" name="group_by_month" context="{'group_by': 'date_from:month'}"/>
                 </group>
             </search>
         </field>
     </record>
-
 
     <!-- Tree View لسطور التقرير -->
     <record id="view_employee_workload_line_list" model="ir.ui.view">
@@ -125,10 +142,10 @@
                        decoration-danger="schedule_status == 'delayed'" optional="show"/>
                 <field name="department_id"/>
                 <field name="job_id"/>
-                <!--                <field name="capacity_hours" sum="Total Capacity"/>-->
+                <field name="capacity_hours" sum="Total Capacity"/>
                 <field name="assigned_hours" sum="Total Assigned"/>
-                <field name="load_percentage" widget="progressbar" column_invisible="1"/>
-                <field name="status" column_invisible="1"/>
+                <field name="load_percentage" widget="progressbar"/>
+                <field name="status"/>
             </list>
         </field>
     </record>
@@ -140,7 +157,7 @@
         <field name="arch" type="xml">
             <graph string="Workload Analysis" type="bar" sample="1">
                 <field name="employee_id"/>
-                <!--                <field name="capacity_hours" type="measure"/>-->
+                <field name="capacity_hours" type="measure"/>
                 <field name="assigned_hours" type="measure"/>
             </graph>
         </field>
@@ -154,9 +171,9 @@
             <pivot string="Workload Pivot" sample="1">
                 <field name="employee_id" type="row"/>
                 <field name="department_id" type="row"/>
-                <!--                <field name="capacity_hours" type="measure"/>-->
+                <field name="capacity_hours" type="measure"/>
                 <field name="assigned_hours" type="measure"/>
-                <field name="load_percentage" type="measure" column_invisible="1"/>
+                <field name="load_percentage" type="measure"/>
             </pivot>
         </field>
     </record>

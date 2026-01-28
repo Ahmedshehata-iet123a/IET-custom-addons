@@ -76,7 +76,6 @@ class ProjectImportPlan(models.TransientModel):
                         # ✅ added only
                         'milestone_type': str(milestone_type).strip() if milestone_type else False,
                         'milestone_weight': str(milestone_weight).strip() if milestone_weight else False,
-                        'display_type': 'line_section' if milestone_type else False,
 
                         'planned_start_date': planned_start,
                         'actual_start_date': actual_start,

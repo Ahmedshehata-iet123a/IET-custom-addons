@@ -59,11 +59,9 @@
         'hr',
         'hr_holidays',
         'hr_timesheet',
-        'iet_project_system',
     ],
     'data': [
         'security/ir.model.access.csv',
-        'views/project_views.xml',
         'views/employee_workload_views.xml',
         'views/employee_per_project_views.xml',
         'views/planned_vs_actual_views.xml',

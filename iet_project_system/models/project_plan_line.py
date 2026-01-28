@@ -41,18 +41,6 @@ class ProjectPlanLine(models.Model):
     ], string="Milestone Type")
     milestone_weight = fields.Integer(string="Weight (%)")
 
-    delay_days = fields.Float(string='Delay (Days)', digits=(10, 1), compute="_compute_delay_days", store=True)
-
-    @api.depends('planned_end_date', 'actual_end_date')
-    def _compute_delay_days(self):
-        for rec in self:
-            if rec.planned_end_date and rec.actual_end_date:
-                rec.delay_days = (rec.actual_end_date - rec.planned_end_date).days
-            else:
-                rec.delay_days = 0.0
-
-
-
     @api.onchange('status_done')
     def _onchange_status_done(self):
         for line in self:
@@ -157,64 +145,12 @@ class ProjectPlanLine(models.Model):
     def create(self, vals):
         record = super().create(vals)
         record._create_milestone_if_section()
-        if 'actual_end_date' in vals and not record.display_type:
-            record.write({'actual_end_date': vals['actual_end_date']})  # Trigger the write logic to sync section
         return record
 
     def write(self, vals):
-        # We need to run the milestone date sync even if skip_task_update is present,
-        # but we should avoid infinite loops.
         res = super().write(vals)
 
-        # Skip only the standard task sync back logic, but allow Milestone sync
-        skip_task_sync = self.env.context.get('skip_task_update')
-
-        if 'actual_end_date' in vals or 'status_done' in vals:
-            for line in self:
-                if not line.display_type and line.project_id and line.milestone_id:
-                    # Logic: If all tasks in this milestone are done, 
-                    # sync the milestone row's date from the last task.
-
-                    # Find all sibling tasks (not sections) for this milestone
-                    siblings = self.env['project.plan.line'].search([
-                        ('project_id', '=', line.project_id.id),
-                        ('milestone_id', '=', line.milestone_id.id),
-                        ('display_type', '=', False)
-                    ], order='id asc')
-
-                    if not siblings:
-                        continue
-
-                    milestone_date = False
-                    dates = [s.actual_end_date for s in siblings if s.actual_end_date]
-                    if dates:
-                        milestone_date = max(dates)
-                    
-                    # Find the section line for this milestone
-                    section_line = self.env['project.plan.line'].search([
-                        ('project_id', '=', line.project_id.id),
-                        ('milestone_id', '=', line.milestone_id.id),
-                        ('display_type', '=', 'line_section')
-                    ], limit=1)
-
-                    if section_line:
-                        
-                        # Update section line actual end date
-                        section_line.write({'actual_end_date': milestone_date})
-
-                        # Calculate delay and status using project thresholds
-                        delay = 0.0
-                        status = False
-                        if milestone_date and section_line.planned_end_date:
-                            # Use Odoo's native Date calculation (difference in days)
-                            delta = (milestone_date - section_line.planned_end_date).days
-                            delay = float(delta)
-
-
-                        if section_line.milestone_id:
-                            section_line.milestone_id.deadline = milestone_date
-
-        if skip_task_sync:
+        if self.env.context.get('skip_task_update'):
             return res
 
         if 'status_done' in vals:

@@ -21,18 +21,6 @@ class Project(models.Model):
     scope_ids = fields.Many2many('project.scope', string='Scope')
     completion_percent = fields.Float(string='Completion %', compute='_compute_completion_percent', store=True)
 
-    # Dynamic Schedule Thresholds
-    threshold_on_track = fields.Integer(string='On Track Threshold (Days)', default=0, help="Delay days up to this value are considered 'On Track'")
-    threshold_at_risk = fields.Integer(string='At Risk Threshold (Days)', default=5, help="Delay days up to this value are considered 'At Risk'")
-    threshold_delayed = fields.Integer(string='Delayed Threshold (Days)', default=6, help="Delay days above this value are considered 'Delayed'")
-    all_delay_days = fields.Float(compute="_compute_all_delay_days", store=True)
-
-    @api.depends('project_plan_line_ids.delay_days')
-    def _compute_all_delay_days(self):
-        for rec in self:
-            total_delay = sum(rec.project_plan_line_ids.mapped('delay_days'))
-            rec.all_delay_days = total_delay
-
     def _cron_send_deadline_notifications(self):
         """إرسال تذكيرات قبل انتهاء المواعيد (0-10 أيام)"""
         today = fields.Date.today()

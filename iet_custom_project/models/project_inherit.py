@@ -18,31 +18,28 @@ class IrAttachment(models.Model):
         ('mom', 'MOM'),
         ('closing', 'Project Closing')
     ], string="Document Type")
-    
-    document_date = fields.Date(string="Document Date", default=fields.Date.context_today)
 
 
 class Project(models.Model):
     _inherit = 'project.project'
 
-    team_id = fields.Many2one('project.team', string='Team', tracking=True)
-    start_project_date = fields.Date("Start Project Date", required=False, tracking=True)
-    end_project_date = fields.Date("End Project Date", required=False, tracking=True)
+    team_id = fields.Many2one('project.team', string='Team')
+    start_project_date = fields.Date("Start Project Date", required=False)
+    end_project_date = fields.Date("End Project Date", required=False)
 
-    free_support_start_date = fields.Date("Free Support Start Date", tracking=True)
-    free_support_end_date = fields.Date("Free Support End Date", tracking=True)
+    free_support_start_date = fields.Date("Free Support Start Date")
+    free_support_end_date = fields.Date("Free Support End Date")
 
-    contract_project_start_date = fields.Date("Contract Project Start Date", tracking=True)
-    contract_project_end_date = fields.Date("Contract Project End Date", tracking=True)
+    contract_project_start_date = fields.Date("Contract Project Start Date")
+    contract_project_end_date = fields.Date("Contract Project End Date")
 
-    industry_id = fields.Many2one('project.industry', string='Industry', tracking=True)
+    industry_id = fields.Many2one('project.industry', string='Industry')
     implementation_owner_ids = fields.Many2many(
         'hr.employee',
         'project_implementation_owner_rel',
         'project_id',
         'employee_id',
         string='Implementation Owners',
-        tracking=True,
         domain=[
             ('active', '=', True),
             '|',
@@ -58,7 +55,6 @@ class Project(models.Model):
         'project_id',
         'employee_id',
         string='Development Owners',
-        tracking=True,
         domain=[
             ('active', '=', True),
             ('department_id.name', '=', 'Development')
