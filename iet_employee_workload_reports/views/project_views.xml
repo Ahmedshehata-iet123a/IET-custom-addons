@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_project_project_stage_form_inherit" model="ir.ui.view">
+        <field name="name">project.project.stage.form.inherit</field>
+        <field name="model">project.project.stage</field>
+        <field name="inherit_id" ref="project.project_project_stage_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='fold']" position="after">
+                <field name="is_stop_workload"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
