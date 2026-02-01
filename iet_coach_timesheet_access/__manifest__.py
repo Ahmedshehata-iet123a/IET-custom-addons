@@ -10,6 +10,7 @@
     'depends': ['hr', 'hr_timesheet', 'hr_holidays'],
     'data': [
         'security/ir.model.access.csv',
+        'security/timesheet_coach_rule.xml',
         'wizard/coach_timesheet_wizard_views.xml',
         'views/groups.xml',
         'views/menu.xml',

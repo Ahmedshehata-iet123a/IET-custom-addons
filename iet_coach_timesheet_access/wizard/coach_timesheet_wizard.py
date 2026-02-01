@@ -57,7 +57,10 @@ class CoachTimesheetWizard(models.TransientModel):
                 employee = wizard.employee_id
 
                 # البحث بالـ employee_id
-                by_employee = self.env['account.analytic.line'].search([
+                by_employee = self.env['account.analytic.line'].sudo().search([
+                    ('employee_id', '=', employee.id)
+                ])
+                by_employee_visible = self.env['account.analytic.line'].search([
                     ('employee_id', '=', employee.id)
                 ])
 
@@ -79,7 +82,8 @@ User: {employee.user_id.name if employee.user_id else 'No User'}
 User ID: {employee.user_id.id if employee.user_id else 'N/A'}
 
 === Timesheets by employee_id (ID={employee.id}) ===
-Found: {len(by_employee)} entries
+Found (System): {len(by_employee)} entries
+Found (Visible): {len(by_employee_visible)} entries
 {chr(10).join([f"- Date: {t.date}, Hours: {t.unit_amount}, Project: {t.project_id.name if t.project_id else 'None'}, User: {t.user_id.name if t.user_id else 'N/A'}" for t in by_employee[:5]]) or 'No entries found'}
 
 === Timesheets by user_id (ID={employee.user_id.id if employee.user_id else 'N/A'}) ===

@@ -43,6 +43,7 @@ class ProjectPlanLine(models.Model):
 
     delay_days = fields.Float(string='Delay (Days)', digits=(10, 1), compute="_compute_delay_days", store=True)
 
+    sequence = fields.Integer(string='Sequence', default=10)
     @api.depends('planned_end_date', 'actual_end_date')
     def _compute_delay_days(self):
         for rec in self:

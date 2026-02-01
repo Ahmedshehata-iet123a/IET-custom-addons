@@ -45,9 +45,12 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Debug Info" invisible="1">
+                        <page string="Debug Info">
                             <field name="debug_info" nolabel="1" widget="text"/>
                         </page>
+<!--                        <page string="Debug Info" invisible="1">-->
+<!--                            <field name="debug_info" nolabel="1" widget="text"/>-->
+<!--                        </page>-->
                     </notebook>
                 </sheet>
                 <footer>
