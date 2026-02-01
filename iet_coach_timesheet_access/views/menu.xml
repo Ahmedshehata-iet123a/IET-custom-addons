@@ -3,12 +3,12 @@
     <!-- Menu Item -->
     <menuitem id="menu_coach_timesheet_wizard"
               name="My Team Timesheets"
-              parent="hr_timesheet.menu_hr_time_tracking"
+              parent="hr_timesheet.timesheet_menu_root"
               groups="iet_coach_timesheet_access.my_team_time_sheet"
               action="action_coach_timesheet_wizard"
               sequence="10"/>
 
-    <record id="hr_timesheet.menu_hr_time_tracking" model="ir.ui.menu">
+    <record id="hr_timesheet.timesheet_menu_root" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('iet_coach_timesheet_access.my_team_time_sheet'))]"/>
     </record>
 </odoo>
