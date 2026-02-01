@@ -1,0 +1,5 @@
+<odoo>
+    <record model="res.groups" id="my_team_time_sheet">
+        <field name="name">My Team Time Sheet</field>
+    </record>
+</odoo>

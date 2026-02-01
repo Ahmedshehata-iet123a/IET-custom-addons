@@ -11,6 +11,7 @@
     'data': [
         'security/ir.model.access.csv',
         'wizard/coach_timesheet_wizard_views.xml',
+        'views/groups.xml',
         'views/menu.xml',
     ],
     'installable': True,

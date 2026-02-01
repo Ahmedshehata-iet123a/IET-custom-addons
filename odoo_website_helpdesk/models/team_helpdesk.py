@@ -39,9 +39,9 @@ class TeamHelpDesk(models.Model):
                                       ('groups_id', 'in', self.env.ref(
                                           'odoo_website_helpdesk.helpdesk_user').id)])
     email = fields.Char('Email', help='Email of the team member.')
-    project_id = fields.Many2one('project.project',
-                                 string='Project',
-                                 help='Projects related helpdesk team.')
+    project_ids = fields.Many2many('project.project',
+                                  string='Projects',
+                                  help='Projects related helpdesk team.')
     create_task = fields.Boolean(string="Create Task",
                                  help="Task created or not")
 

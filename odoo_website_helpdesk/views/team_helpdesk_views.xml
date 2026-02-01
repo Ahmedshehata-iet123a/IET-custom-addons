@@ -13,7 +13,7 @@
                         </group>
                         <group>
                             <field name="team_lead_id"/>
-                            <field name="project_id"/>
+                            <field name="project_ids" widget="many2many_tags"/>
                         </group>
                     </group>
                     <notebook>

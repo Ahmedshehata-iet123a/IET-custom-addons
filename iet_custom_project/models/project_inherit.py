@@ -25,7 +25,8 @@ class IrAttachment(models.Model):
 class Project(models.Model):
     _inherit = 'project.project'
 
-    team_id = fields.Many2one('project.team', string='Team', tracking=True)
+    # team_id = fields.Many2one('team.helpdesk', string='Helpdesk Team', tracking=True, ondelete='set null')
+    team_helpdesk_id = fields.Many2one('team.helpdesk', string='Helpdesk Team', tracking=True, ondelete='set null')
     start_project_date = fields.Date("Start Project Date", required=False, tracking=True)
     end_project_date = fields.Date("End Project Date", required=False, tracking=True)
 

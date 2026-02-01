@@ -79,9 +79,6 @@ class TicketHelpDesk(models.Model):
                                    help='Product Name')
     project_id = fields.Many2one('project.project',
                                  string='Project',
-                                 readonly=False,
-                                 related='team_id.project_id',
-                                 store=True,
                                  help='Project Name')
     priority = fields.Selection(PRIORITIES, default='1', help='Priority of the'
                                                               ' Ticket')
@@ -164,8 +161,19 @@ class TicketHelpDesk(models.Model):
     @api.onchange('team_id', 'team_head_id')
     def _onchange_team_id(self):
         """Changing the team leader when selecting the team"""
-        li = self.team_id.member_ids.mapped(id)
+        li = self.team_id.member_ids.mapped('id')
         return {'domain': {'assigned_user_id': [('id', 'in', li)]}}
+
+    @api.onchange('project_id')
+    def _onchange_project_id(self):
+        """Automatically set team_id based on project_id"""
+        if self.project_id:
+            if self.project_id.team_helpdesk_id:
+                self.team_id = self.project_id.team_helpdesk_id
+            else:
+                team = self.env['team.helpdesk'].search([('project_ids', 'in', self.project_id.id)], limit=1)
+                if team:
+                    self.team_id = team
 
     @api.depends('team_id')
     def _compute_team_head_id(self):
@@ -247,6 +255,14 @@ class TicketHelpDesk(models.Model):
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code(
                     'ticket.helpdesk')
+            if not vals.get('team_id') and vals.get('project_id'):
+                project = self.env['project.project'].browse(vals.get('project_id'))
+                if project.team_helpdesk_id:
+                    vals['team_id'] = project.team_helpdesk_id.id
+                else:
+                    team = self.env['team.helpdesk'].search([('project_ids', 'in', project.id)], limit=1)
+                    if team:
+                        vals['team_id'] = team.id
         return super(TicketHelpDesk, self).create(vals_list)
 
     def write(self, vals):

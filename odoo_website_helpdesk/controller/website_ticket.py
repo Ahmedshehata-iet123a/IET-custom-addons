@@ -35,11 +35,18 @@ class WebsiteDesk(http.Controller):
         types = request.env['helpdesk.type'].sudo().search([])
         categories = request.env['helpdesk.category'].sudo().search([])
         product = request.env['product.template'].sudo().search([])
+        user = request.env.user
+        if not user or user._is_public():
+            available_projects = request.env['project.project'].sudo().browse([])
+        else:
+            domain = [('partner_id', '=', user.partner_id.id)]
+            available_projects = request.env['project.project'].sudo().search(domain)
         values = {}
         values.update({
             'types': types,
             'categories': categories,
-            'product_website': product
+            'product_website': product,
+            'available_projects': available_projects,
         })
         return request.render('odoo_website_helpdesk.ticket_form', values)
 

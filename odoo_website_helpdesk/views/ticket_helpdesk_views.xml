@@ -10,6 +10,7 @@
                     <field name="subject" string="Subject"/>
                     <field name="customer_id" string="Customer"/>
                     <field name="description" string="Description"/>
+                    <field name="project_id"/>
                 </group>
             </form>
         </field>

@@ -10,7 +10,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="after">
                     <field name="industry_id"/>
-                    <field name="team_id"/>
+                    <field name="team_helpdesk_id"/>
                     <field name="implementation_owner_ids" widget="many2many_tags"/>
                     <field name="development_owner_ids" widget="many2many_tags"/>
 

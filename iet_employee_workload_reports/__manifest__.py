@@ -68,6 +68,7 @@
         'views/employee_per_project_views.xml',
         'views/planned_vs_actual_views.xml',
         'views/reports_menu.xml',
+        'data/ir_cron.xml',
     ],
     'demo': [],
     'installable': True,

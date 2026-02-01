@@ -193,7 +193,7 @@ class Project(models.Model):
                     'project_id': project.id,
                     'date_start': plan_line.planned_start_date,
                     'end_date': plan_line.planned_end_date,
-                    'team_name': project.team_id.name,
+                    'team_name': project.team_helpdesk_id.name,
                     'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
                     'milestone_id': plan_line.milestone_id.id if plan_line.milestone_id else False,
                     'stage_id': task_type_ids[0].id,
@@ -257,8 +257,8 @@ class Project(models.Model):
                         )
 
                     # Team Name
-                    if plan_line.task_id.team_name != project.team_id.name:
-                        update_vals['team_name'] = project.team_id.name
+                    if plan_line.task_id.team_name != project.team_helpdesk_id.name:
+                        update_vals['team_name'] = project.team_helpdesk_id.name
 
                     # ⚠️ لا نغير stage ولا project ولا users
                     if update_vals:
@@ -279,7 +279,7 @@ class Project(models.Model):
                         'stage_id': task_type_ids.id,
                         'date_start': plan_line.planned_start_date,
                         'end_date': plan_line.planned_end_date,
-                        'team_name': project.team_id.name,
+                        'team_name': project.team_helpdesk_id.name,
                         'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
                         'milestone_id': plan_line.milestone_id.id if plan_line.milestone_id else False,
                     }
