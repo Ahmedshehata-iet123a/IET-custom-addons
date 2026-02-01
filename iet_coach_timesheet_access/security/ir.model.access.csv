@@ -1,3 +1,2 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_coach_timesheet_wizard_user,coach.timesheet.wizard.user,model_coach_timesheet_wizard,hr.group_hr_user,1,1,1,1
-access_coach_timesheet_wizard_manager,coach.timesheet.wizard.manager,model_coach_timesheet_wizard,hr.group_hr_manager,1,1,1,1
+access_coach_timesheet_wizard,coach.timesheet.wizard,model_coach_timesheet_wizard,,1,1,1,1
