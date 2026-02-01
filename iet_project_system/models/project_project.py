@@ -27,10 +27,11 @@ class Project(models.Model):
     threshold_delayed = fields.Integer(string='Delayed Threshold (Days)', default=6, help="Delay days above this value are considered 'Delayed'")
     all_delay_days = fields.Float(compute="_compute_all_delay_days", store=True)
 
-    @api.depends('project_plan_line_ids.delay_days')
+    @api.depends('project_plan_line_ids.delay_days', 'project_plan_line_ids.display_type')
     def _compute_all_delay_days(self):
         for rec in self:
-            total_delay = sum(rec.project_plan_line_ids.mapped('delay_days'))
+            milestone_lines = rec.project_plan_line_ids.filtered(lambda l: l.display_type == 'line_section')
+            total_delay = sum(milestone_lines.mapped('delay_days'))
             rec.all_delay_days = total_delay
 
     def _cron_send_deadline_notifications(self):

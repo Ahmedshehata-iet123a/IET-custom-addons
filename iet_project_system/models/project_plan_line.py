@@ -44,13 +44,34 @@ class ProjectPlanLine(models.Model):
     delay_days = fields.Float(string='Delay (Days)', digits=(10, 1), compute="_compute_delay_days", store=True)
 
     sequence = fields.Integer(string='Sequence', default=10)
+
     @api.depends('planned_end_date', 'actual_end_date')
     def _compute_delay_days(self):
         for rec in self:
+            rec.delay_days = 0
             if rec.planned_end_date and rec.actual_end_date:
-                rec.delay_days = (rec.actual_end_date - rec.planned_end_date).days
-            else:
-                rec.delay_days = 0.0
+                current_date = rec.planned_end_date
+                actual_date = rec.actual_end_date
+                if actual_date > current_date:
+                    start_loop = current_date + timedelta(days=1)
+                    end_loop = actual_date
+                    sign = 1
+                elif actual_date < current_date:
+                    start_loop = actual_date + timedelta(days=1)
+                    end_loop = current_date
+                    sign = 0
+                else:
+                    # Same day
+                    continue
+
+                delay = 0
+                curr = start_loop
+                while curr <= end_loop:
+                    if curr.weekday() not in (4, 5):
+                        delay += 1
+                    curr += timedelta(days=1)
+
+                rec.delay_days = delay * sign
 
 
 
@@ -186,11 +207,18 @@ class ProjectPlanLine(models.Model):
                     if not siblings:
                         continue
 
+                    # Check if all tasks in this milestone are done
+                    all_done = all(s.status_done for s in siblings)
+
+                    # Only update milestone if ALL tasks are done
                     milestone_date = False
-                    dates = [s.actual_end_date for s in siblings if s.actual_end_date]
-                    if dates:
-                        milestone_date = max(dates)
-                    
+                    if all_done:
+                        # Get the last task that was marked done (chronologically)
+                        done_tasks = siblings.filtered(lambda s: s.status_done)
+                        if done_tasks:
+                            last_done_task = done_tasks.sorted(lambda s: s.write_date, reverse=True)[0]
+                            milestone_date = last_done_task.actual_end_date
+
                     # Find the section line for this milestone
                     section_line = self.env['project.plan.line'].search([
                         ('project_id', '=', line.project_id.id),
@@ -199,19 +227,17 @@ class ProjectPlanLine(models.Model):
                     ], limit=1)
 
                     if section_line:
-                        
-                        # Update section line actual end date
-                        section_line.write({'actual_end_date': milestone_date})
+                        # Update section line actual end date and status
+                        update_vals = {'actual_end_date': milestone_date}
 
-                        # Calculate delay and status using project thresholds
-                        delay = 0.0
-                        status = False
-                        if milestone_date and section_line.planned_end_date:
-                            # Use Odoo's native Date calculation (difference in days)
-                            delta = (milestone_date - section_line.planned_end_date).days
-                            delay = float(delta)
+                        # Check if all tasks in this milestone are done
+                        all_done = all(s.status_done for s in siblings)
+                        if all_done:
+                            update_vals['status_done'] = True
 
+                        section_line.write(update_vals)
 
+                        # Update the milestone deadline
                         if section_line.milestone_id:
                             section_line.milestone_id.deadline = milestone_date
 
@@ -225,14 +251,11 @@ class ProjectPlanLine(models.Model):
                         for line in self:
                             if line.task_id:
                                 if vals['status_done']:
-                                    # done_stage = self.env['project.task.type'].search([('fold', '=', True)], limit=1)
                                     update_vals = {
                                         'is_closed': True,
                                         'status_done': True,
                                         'state': '1_done',
                                     }
-                                    # if done_stage:
-                                    #     update_vals['stage_id'] = done_stage.id
 
                                     line.task_id.with_context(skip_plan_line_update=True).sudo().write(update_vals)
 
