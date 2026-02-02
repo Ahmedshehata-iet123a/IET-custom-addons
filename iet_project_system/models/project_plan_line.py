@@ -16,9 +16,11 @@ class ProjectPlanLine(models.Model):
     task_owner = fields.Text(string='Task Owner')
     status = fields.Text(string='Status')
     comments = fields.Text(string='Comments')
+    attachments = fields.Binary(string='Attachments')
     display_type = fields.Selection([
-        ('line_section', "Section"),
-        ('line_note', "Note")], default=False, help="Technical field for UX purpose.")
+        ('line_section', 'Section'),
+        ('line_note', 'Note'),
+    ], string='Display Type', default=False)
     task_id = fields.Many2one('project.task', string="Linked Task")
     planned_duration = fields.Float(
         string='Planned Duration (Days)',
@@ -34,11 +36,7 @@ class ProjectPlanLine(models.Model):
     )
     milestone_id = fields.Many2one('project.milestone', string='Milestone')
     status_done = fields.Boolean(string='Done ✅', default=False)
-    milestone_type = fields.Selection([
-        ('gap_analysis', 'Gap Analysis'),
-        ('implementation', 'Implementation'),
-        ('training', 'Training')
-    ], string="Milestone Type")
+    milestone_type_new = fields.Many2one('milestone.type', string="Milestone Type")
     milestone_weight = fields.Integer(string="Weight (%)")
 
     delay_days = fields.Float(string='Delay (Days)', digits=(10, 1), compute="_compute_delay_days", store=True)

@@ -54,7 +54,7 @@ class ProjectImportPlan(models.TransientModel):
                         continue
 
                     # ✅ NEW FIELDS
-                    milestone_type = row[1] if len(row) > 1 else False
+                    milestone_type_new = row[1] if len(row) > 1 else False
                     milestone_weight = row[2] if len(row) > 2 else False
 
                     # التواريخ
@@ -69,14 +69,26 @@ class ProjectImportPlan(models.TransientModel):
 
                     status_done = str(done).strip().lower() in ['true', '1', 'yes', 'done', 'x']
 
+                    if milestone_type_new:
+                        milestone_type_rec = self.env['milestone.type'].search([('name', '=', str(milestone_type_new).strip())], limit=1)
+                        if not milestone_type_rec:
+                            milestone_type_rec = self.env['milestone.type'].create({'name': str(milestone_type_new).strip()})
+                        milestone_type_id = milestone_type_rec.id
+                    else:
+                        milestone_type_id = False
+
+                    try:
+                        weight = int(milestone_weight) if milestone_weight else 0
+                    except (ValueError, TypeError):
+                        weight = 0
+
                     vals = {
                         'project_id': self.project_id.id,
                         'name': str(task_name).strip(),
 
-                        # ✅ added only
-                        'milestone_type': str(milestone_type).strip() if milestone_type else False,
-                        'milestone_weight': str(milestone_weight).strip() if milestone_weight else False,
-                        'display_type': 'line_section' if milestone_type else False,
+                        'milestone_type_new': milestone_type_id,
+                        'milestone_weight': weight,
+                        'display_type': 'line_section' if milestone_type_id else False,
 
                         'planned_start_date': planned_start,
                         'actual_start_date': actual_start,

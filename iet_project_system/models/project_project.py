@@ -340,8 +340,8 @@ class Project(models.Model):
 
             for line in project.project_plan_line_ids:
                 worksheet.write(row, 0, line.name or '', task_format)
-                worksheet.write(row, 1, line.milestone_type or '', task_format)
-                worksheet.write(row, 2, line.milestone_weight or '', task_format)
+                worksheet.write(row, 1, line.milestone_type_new.name or '', task_format)
+                worksheet.write(row, 2, line.milestone_weight or 0, task_format)
                 worksheet.write(row, 3,
                                 line.planned_start_date.strftime("%Y-%m-%d %H:%M") if line.planned_start_date else '',
                                 task_format)

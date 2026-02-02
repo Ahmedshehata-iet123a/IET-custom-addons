@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_pproject_plan_line,project.plan.line,model_project_plan_line,,1,1,1,1
 access_pproject_scope,project.scope,model_project_scope,,1,1,1,1
 access_project_import_plan,project.import.plan,model_project_import_plan,,1,1,1,1
+access_milestone_type,milestone.type,model_milestone_type,,1,1,1,1

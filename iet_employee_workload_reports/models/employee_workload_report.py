@@ -101,9 +101,9 @@ class EmployeeWorkloadReport(models.Model):
         actual_progress = project.completion_percent if hasattr(project, 'completion_percent') else 0
         delay_days = project.all_delay_days
 
-        if delay_days <= project.threshold_on_track and delay_days < project.threshold_at_risk:
+        if delay_days >= project.threshold_on_track and delay_days < project.threshold_at_risk:
             schedule_status = 'on_track'
-        elif delay_days == project.threshold_at_risk and delay_days <= project.threshold_delayed:
+        elif delay_days == project.threshold_at_risk and delay_days < project.threshold_delayed:
             schedule_status = 'at_risk'
         else:
             schedule_status = 'delayed'
@@ -130,7 +130,7 @@ class EmployeeWorkloadReportLine(models.Model):
     project_stage_id = fields.Many2one('project.project.stage', string='Project Stage', related='project_id.stage_id',
                                        store=True)
     planned_duration = fields.Float(string='Planned Duration (Days)', digits=(10, 1))
-    days_passed = fields.Float(string='Days Passed', digits=(10, 1))
+    days_passed = fields.Float(string='Working Days', digits=(10, 1))
     expected_progress = fields.Float(string='Expected %', digits=(10, 1))
     actual_progress = fields.Float(string='Actual %', digits=(10, 1))
     delay_days = fields.Float(string='Delay (Days)', digits=(10, 1))
