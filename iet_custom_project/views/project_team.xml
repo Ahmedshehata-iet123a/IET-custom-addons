@@ -43,7 +43,7 @@
 
     <menuitem
             id="menu_project_team"
-            name="Teams"
+            name="Development Teams"
             parent="project.menu_project_config"
             action="action_project_team"
             sequence="10"/>

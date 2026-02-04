@@ -12,6 +12,7 @@
                     <field name="industry_id"/>
                     <field name="team_helpdesk_id"/>
                     <field name="implementation_owner_ids" widget="many2many_tags"/>
+                    <field name="devlop_team_id"/>
                     <field name="development_owner_ids" widget="many2many_tags"/>
 
                 </xpath>
