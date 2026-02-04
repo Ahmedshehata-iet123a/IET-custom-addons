@@ -10,6 +10,7 @@
             id="menu_employee_workload_root"
             name="Workload Reports"
             parent="project.menu_main_pm"
+            groups="project.group_project_manager"
             sequence="50"/>
 
     <!-- ============================================================ -->
@@ -24,39 +25,6 @@
             action="action_employee_workload_report"
             sequence="10"/>
 
-    <!-- Sub Menu: Per Employee Analysis -->
-    <!--    <menuitem-->
-    <!--        id="menu_employee_workload_analysis"-->
-    <!--        name="Per Employee Analysis"-->
-    <!--        parent="menu_employee_workload_root"-->
-    <!--        action="action_employee_workload_analysis"-->
-    <!--        sequence="11"/>-->
-
-    <!-- ============================================================ -->
-    <!-- PER PROJECT MENUS -->
-    <!-- ============================================================ -->
-
-    <!-- Sub Menu: Per Project Reports -->
-    <!--    <menuitem-->
-    <!--        id="menu_employee_per_project_reports"-->
-    <!--        name="Per Project"-->
-    <!--        parent="menu_employee_workload_root"-->
-    <!--        action="action_employee_per_project_report"-->
-    <!--        sequence="20"/>-->
-
-    <!-- Sub Menu: Per Project Analysis -->
-    <!--    <menuitem-->
-    <!--        id="menu_employee_per_project_analysis"-->
-    <!--        name="Per Project Analysis"-->
-    <!--        parent="menu_employee_workload_root"-->
-    <!--        action="action_employee_per_project_analysis"-->
-    <!--        sequence="21"/>-->
-
-    <!-- ============================================================ -->
-    <!-- PLANNED VS ACTUAL MENUS -->
-    <!-- ============================================================ -->
-
-    <!-- Sub Menu: Planned vs Actual Reports -->
     <menuitem
             id="menu_planned_vs_actual_reports"
             name="Planned vs Actual"
@@ -64,132 +32,8 @@
             action="action_project_planned_actual_report"
             sequence="30"/>
 
-    <!-- Sub Menu: Planned vs Actual Analysis -->
-    <!--    <menuitem-->
-    <!--        id="menu_planned_vs_actual_analysis"-->
-    <!--        name="Planned vs Actual Analysis"-->
-    <!--        parent="menu_employee_workload_root"-->
-    <!--        action="action_project_planned_actual_report_line"-->
-    <!--        sequence="31"/>-->
 
-    <!-- ============================================================ -->
-    <!-- FREE SUPPORT PROJECTS -->
-    <!-- ============================================================ -->
 
-    <!--    &lt;!&ndash; Sub Menu: Contract Support Projects &ndash;&gt;-->
-    <!--    <record id="view_project_project_contract_support_list" model="ir.ui.view">-->
-    <!--        <field name="name">project.project.contract.support.list</field>-->
-    <!--        <field name="model">project.project</field>-->
-    <!--        <field name="arch" type="xml">-->
-    <!--            <list string="Contract Support Projects" delete="1" create="0">-->
-    <!--                <field name="name"/>-->
-    <!--                <field name="partner_id"/>-->
-    <!--                <field name="user_id" widget="many2one_avatar_user"/>-->
-    <!--                <field name="contract_project_start_date" optional="show"/>-->
-    <!--                <field name="contract_project_end_date" optional="show"/>-->
-    <!--                <field name="stage_id" widget="badge"/>-->
-    <!--            </list>-->
-    <!--        </field>-->
-    <!--    </record>-->
-
-    <!--    <record id="view_project_project_contract_support_search" model="ir.ui.view">-->
-    <!--        <field name="name">project.project.contract.support.search</field>-->
-    <!--        <field name="model">project.project</field>-->
-    <!--        <field name="arch" type="xml">-->
-    <!--            <search string="Search Contract Support Projects">-->
-    <!--                <field name="name"/>-->
-    <!--                <field name="partner_id"/>-->
-    <!--                <field name="user_id"/>-->
-    <!--            </search>-->
-    <!--        </field>-->
-    <!--    </record>-->
-
-    <!--    <record id="action_contract_support_projects" model="ir.actions.act_window">-->
-    <!--        <field name="name">Contract Support Projects</field>-->
-    <!--        <field name="res_model">project.project</field>-->
-    <!--        <field name="view_mode">list,form</field>-->
-    <!--        <field name="view_id" ref="view_project_project_contract_support_list"/>-->
-    <!--        <field name="search_view_id" ref="view_project_project_contract_support_search"/>-->
-    <!--        <field name="domain">[('contract_project_end_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]</field>-->
-    <!--        <field name="context">{}</field>-->
-    <!--        <field name="help" type="html">-->
-    <!--            <p class="o_view_nocontent_smiling_face">-->
-    <!--                No Contract Support projects found!-->
-    <!--            </p>-->
-    <!--        </field>-->
-    <!--    </record>-->
-
-    <!--    <menuitem-->
-    <!--        id="menu_contract_support_projects"-->
-    <!--        name="Contract Support Projects"-->
-    <!--        parent="menu_employee_workload_root"-->
-    <!--        action="action_contract_support_projects"-->
-    <!--        sequence="40"/>-->
-    <!--    &lt;!&ndash; Sub Menu: Free Support Projects &ndash;&gt;-->
-    <!--    <record id="view_project_project_free_support_list" model="ir.ui.view">-->
-    <!--        <field name="name">project.project.free.support.list</field>-->
-    <!--        <field name="model">project.project</field>-->
-    <!--        <field name="arch" type="xml">-->
-    <!--            <list string="Free Support Projects" delete="1" create="0">-->
-    <!--                <field name="name"/>-->
-    <!--                <field name="partner_id"/>-->
-    <!--                <field name="user_id" widget="many2one_avatar_user"/>-->
-    <!--                <field name="free_support_start_date" optional="show"/>-->
-    <!--                <field name="free_support_end_date" optional="show"/>-->
-    <!--                <field name="stage_id" widget="badge"/>-->
-    <!--            </list>-->
-    <!--        </field>-->
-    <!--    </record>-->
-
-    <!--    <record id="view_project_project_free_support_search" model="ir.ui.view">-->
-    <!--        <field name="name">project.project.free.support.search</field>-->
-    <!--        <field name="model">project.project</field>-->
-    <!--        <field name="arch" type="xml">-->
-    <!--            <search string="Search Free Support Projects">-->
-    <!--                <field name="name"/>-->
-    <!--                <field name="partner_id"/>-->
-    <!--                <field name="user_id"/>-->
-    <!--            </search>-->
-    <!--        </field>-->
-    <!--    </record>-->
-
-    <!--    <record id="action_free_support_projects" model="ir.actions.act_window">-->
-    <!--        <field name="name">Free Support Projects</field>-->
-    <!--        <field name="res_model">project.project</field>-->
-    <!--        <field name="view_mode">list,form</field>-->
-    <!--        <field name="view_id" ref="view_project_project_free_support_list"/>-->
-    <!--        <field name="search_view_id" ref="view_project_project_free_support_search"/>-->
-    <!--        <field name="domain">[('free_support_end_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]</field>-->
-    <!--        <field name="context">{}</field>-->
-    <!--        <field name="help" type="html">-->
-    <!--            <p class="o_view_nocontent_smiling_face">-->
-    <!--                No Free Support projects found!-->
-    <!--            </p>-->
-    <!--        </field>-->
-    <!--    </record>-->
-
-    <!--    <menuitem-->
-    <!--            id="menu_free_support_projects"-->
-    <!--            name="Free Support Projects"-->
-    <!--            parent="menu_employee_workload_root"-->
-    <!--            action="action_free_support_projects"-->
-    <!--            sequence="40"/>-->
-
-    <record id="view_project_project_list_group_stage_inherit" model="ir.ui.view">
-        <field name="name">project.project.list.group.stage.inherit</field>
-        <field name="model">project.project</field>
-        <field name="inherit_id" ref="project.project_list_view_group_stage"/>
-        <field name="arch" type="xml">
-            <field name="partner_id" position="after">
-                <field name="free_support_start_date" string="Free Support Date" widget="daterange"
-                       options='{"end_date_field": "free_support_end_date", "always_range": true}'  optional="show"/>
-                <field name="free_support_end_date" column_invisible="1"/>
-                <field name="contract_project_start_date" string="Contract Support Date" widget="daterange"
-                       options='{"end_date_field": "contract_project_end_date", "always_range": true}'  optional="show"/>
-                <field name="contract_project_end_date" column_invisible="1"/>
-            </field>
-        </field>
-    </record>
 
 
 </odoo>

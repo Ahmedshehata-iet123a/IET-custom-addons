@@ -74,7 +74,7 @@
                             <field name="status_done"/>
                             <field name="status" column_invisible="1" invisible="display_type == 'line_section'" optional="show"/>
                             <field name="comments" invisible="display_type == 'line_section'" optional="show"/>
-                            <field name="attachments" invisible="display_type == 'line_section'" optional="show"/>
+                            <field name="attachment_ids" widget="many2many_binary" invisible="display_type == 'line_section'" optional="show" />
                             <field name="planned_duration" optional="show"/>
                         </list>
                     </field>

@@ -185,7 +185,10 @@ class Project(models.Model):
                 _logger.warning("No task types found for project %s with generate_tasks=True", project.name)
                 continue
 
-            for plan_line in project.project_plan_line_ids.filtered(lambda l: not l.display_type):
+            plan_lines = project.project_plan_line_ids.filtered(lambda l: not l.display_type).sorted(
+                key=lambda l: (l.sequence, l.planned_start_date or fields.Date.today(), l.id)
+            )
+            for plan_line in reversed(plan_lines):
                 if plan_line.task_id:
                     continue
 
@@ -198,6 +201,7 @@ class Project(models.Model):
                     'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
                     'milestone_id': plan_line.milestone_id.id if plan_line.milestone_id else False,
                     'stage_id': task_type_ids[0].id,
+                    'sequence': plan_line.sequence,
                 }
                 _logger.info("Creating task with vals: %s", vals)
                 task = Task.create(vals)
@@ -222,7 +226,10 @@ class Project(models.Model):
             # Tasks already linked to plan lines
             already_linked = project.project_plan_line_ids.filtered('task_id').mapped('task_id.id')
 
-            for plan_line in project.project_plan_line_ids.filtered(lambda l: not l.display_type):
+            plan_lines = project.project_plan_line_ids.filtered(lambda l: not l.display_type).sorted(
+                key=lambda l: (l.sequence, l.planned_start_date or fields.Date.today(), l.id)
+            )
+            for plan_line in reversed(plan_lines):
 
                 # 1️⃣ لو مفيش Task مربوطة – حاول تربط Task موجودة
                 if not plan_line.task_id:
@@ -261,6 +268,10 @@ class Project(models.Model):
                     if plan_line.task_id.team_name != project.team_helpdesk_id.name:
                         update_vals['team_name'] = project.team_helpdesk_id.name
 
+                    # Sequence
+                    if plan_line.task_id.sequence != plan_line.sequence:
+                        update_vals['sequence'] = plan_line.sequence
+
                     # ⚠️ لا نغير stage ولا project ولا users
                     if update_vals:
                         _logger.info(
@@ -283,6 +294,7 @@ class Project(models.Model):
                         'team_name': project.team_helpdesk_id.name,
                         'user_ids': [(6, 0, [project.user_id.id])] if project.user_id else False,
                         'milestone_id': plan_line.milestone_id.id if plan_line.milestone_id else False,
+                        'sequence': plan_line.sequence,
                     }
 
                     _logger.info("Creating new task with vals: %s", vals)

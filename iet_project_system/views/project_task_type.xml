@@ -9,6 +9,7 @@
                 <field name="generate_tasks"/>
                 <field name="required_deadline"/>
                 <field name="required_allocated"/>
+                <field name="is_done_stage"/>
             </xpath>
         </field>
     </record>

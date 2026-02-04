@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- ============================================================ -->
-    <!-- PER PROJECT REPORT VIEWS -->
-    <!-- ============================================================ -->
-
-    <!-- Tree View للتقرير Per Project -->
     <record id="view_employee_per_project_report_list" model="ir.ui.view">
         <field name="name">employee.per.project.report.list</field>
         <field name="model">employee.per.project.report</field>
@@ -18,7 +13,6 @@
         </field>
     </record>
 
-    <!-- Form View للتقرير Per Project -->
     <record id="view_employee_per_project_report_form" model="ir.ui.view">
         <field name="name">employee.per.project.report.form</field>
         <field name="model">employee.per.project.report</field>
@@ -58,7 +52,6 @@
                                     <field name="project_id"/>
                                     <field name="department_id" optional="show"/>
                                     <field name="job_id" optional="hide"/>
-<!--                                    <field name="capacity_hours" sum="Total Capacity"/>-->
                                     <field name="assigned_hours" sum="Total Assigned"/>
                                     <field name="load_percentage" widget="progressbar" column_invisible="1"/>
                                     <field name="status" column_invisible="1"/>
@@ -71,7 +64,6 @@
         </field>
     </record>
 
-    <!-- Search View للتقرير Per Project -->
     <record id="view_employee_per_project_report_search" model="ir.ui.view">
         <field name="name">employee.per.project.report.search</field>
         <field name="model">employee.per.project.report</field>
@@ -93,7 +85,6 @@
         </field>
     </record>
 
-    <!-- Tree View لسطور Per Project -->
     <record id="view_employee_per_project_line_list" model="ir.ui.view">
         <field name="name">employee.per.project.report.line.list</field>
         <field name="model">employee.per.project.report.line</field>
@@ -108,7 +99,6 @@
                 <field name="project_id"/>
                 <field name="department_id"/>
                 <field name="job_id"/>
-<!--                <field name="capacity_hours" sum="Total Capacity"/>-->
                 <field name="assigned_hours" sum="Total Assigned"/>
                 <field name="load_percentage" widget="progressbar" column_invisible="1"/>
                 <field name="status" column_invisible="1"/>

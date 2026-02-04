@@ -5,16 +5,15 @@
         <field name="name">project.payment.list</field>
         <field name="model">project.payment</field>
         <field name="arch" type="xml">
-            <list string="Project Payments" decoration-success="state =='completed'"
-                  decoration-warning="state =='pending'">
-                <field name="project_id"/>
-                <field name="customer_id"/>
-                <field name="contract_payment_date"/>
-                <field name="uat_due_payment"/>
-                <field name="live_due_payment"/>
-                <field name="has_installments" widget="boolean_toggle" readonly="1"/>
-                <field name="state"/>
-                <field name="notes"/>
+            <list string="Project Payments" decoration-success="state =='completed'" decoration-warning="state =='pending'">
+                <field name="project_id" optional="show" />
+                <field name="customer_id" optional="show" />
+                <field name="contract_payment_date" optional="show" />
+                <field name="uat_due_payment" optional="show" />
+                <field name="live_due_payment" optional="show" />
+                <field name="has_installments" widget="boolean_toggle" readonly="1" optional="show" />
+                <field name="state" optional="show" />
+                <field name="notes" optional="show" />
             </list>
         </field>
     </record>
@@ -26,15 +25,15 @@
         <field name="arch" type="xml">
             <form string="Project Payment">
                 <header>
-                    <button name="action_contract_done" type="object" string="Done Contract"
-                            class="btn-primary"
-                            invisible="contract_done or state == 'completed'"/>
-                    <button name="action_uat_done" type="object" string="Done UAT"
-                            class="btn-primary"
-                            invisible="uat_done or not contract_done or state == 'completed'"/>
-                    <button name="action_live_done" type="object" string="Done Live"
-                            class="btn-primary"
-                            invisible="live_done or not uat_done or state == 'completed'"/>
+                    <!--                    <button name="action_contract_done" type="object" string="Done Contract"-->
+                    <!--                            class="btn-primary"-->
+                    <!--                            invisible="contract_done or state == 'completed'"/>-->
+                    <!--                    <button name="action_uat_done" type="object" string="Done UAT"-->
+                    <!--                            class="btn-primary"-->
+                    <!--                            invisible="uat_done or not contract_done or state == 'completed'"/>-->
+                    <!--                    <button name="action_live_done" type="object" string="Done Live"-->
+                    <!--                            class="btn-primary"-->
+                    <!--                            invisible="live_done or not uat_done or state == 'completed'"/>-->
                     <!--                    <button name="action_snooze_uat" type="object" string="Snooze UAT"-->
                     <!--                            class="btn-warning"-->
                     <!--                            invisible="uat_snooze_count >= 2 or not uat_notification_sent or state == 'completed'"/>-->
@@ -44,60 +43,77 @@
                     <!--                    <button name="action_snooze_contract" type="object" string="Snooze Contract"-->
                     <!--                            class="btn-warning"-->
                     <!--                            invisible="contract_snooze_count >= 2 or not contract_notification_sent or state == 'completed'"/>completed-->
-                    <field name="state" widget="statusbar" statusbar_visible="pending,completed"/>
+                    <!--                    <field name="state" widget="statusbar" statusbar_visible="pending,completed"/>-->
                 </header>
                 <sheet>
-                    <group>
-                        <group>
-                            <field name="project_id" options="{'no_create': True}"/>
-                            <field name="customer_id"/>
-                            <field name="has_installments" widget="boolean_toggle"/>
-                            <field name="installment_count" invisible="not has_installments"
-                                   required="has_installments"/>
-                            <field name="installment_date_1"
-                                   invisible="not has_installments or installment_count not in ['1', '2', '3', '4']"
-                                   required="has_installments and installment_count in ['1', '2', '3', '4']"/>
-                            <field name="installment_date_2"
-                                   invisible="not has_installments or installment_count not in ['2', '3', '4']"
-                                   required="has_installments and installment_count in ['2', '3', '4']"/>
-                            <field name="installment_date_3"
-                                   invisible="not has_installments or installment_count not in ['3', '4']"
-                                   required="has_installments and installment_count in ['3', '4']"/>
-                            <field name="installment_date_4"
-                                   invisible="not has_installments or installment_count != '4'"
-                                   required="has_installments and installment_count == '4'"/>
-                        </group>
-                        <group>
-                            <field name="contract_payment_date"/>
-                            <!--                            <field name="contract_done" widget="boolean_toggle" readonly="1"/>-->
-                            <!--                            <field name="contract_done_date" />-->
-                            <field name="uat_due_payment"/>
-                            <!--                            <field name="uat_done" widget="boolean_toggle" readonly="1"/>-->
-                            <!--                            <field name="uat_done_date"/>-->
-                            <field name="live_due_payment"/>
-                            <!--                            <field name="live_done" widget="boolean_toggle" readonly="1"/>-->
-                            <!--                            <field name="live_done_date" />-->
-                        </group>
+                    <group string="Main Data">
+                        <field name="project_id" options="{'no_create': True}" />
+                        <field name="customer_id" />
+                        <field name="has_installments" widget="boolean_toggle" />
+                        <field name="installment_count" invisible="not has_installments" required="has_installments" />
                     </group>
-                    <group string="Notification Status" invisible="1">
-                        <group>
-                            <field name="uat_notification_sent" readonly="1"/>
-                            <field name="uat_snoozed_until" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="live_notification_sent" readonly="1"/>
-                            <field name="live_snoozed_until" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="contract_notification_sent" readonly="1"/>
-                            <field name="contract_snoozed_until" readonly="1"/>
-                        </group>
-                    </group>
+                    <notebook>
+                        <page string="Contact Data">
+                            <group>
+                                <group>
+                                    <field name="contract_payment_date" />
+                                </group>
+                                <group>
+                                    <field name="actual_contract_payment_date" />
+                                </group>
+                                <group>
+                                    <field name="contract_done" widget="boolean_toggle" />
+                                </group>
+                            </group>
+                        </page>
+                        <page string="UAT Data">
+                            <group>
+                                <group>
+                                    <field name="uat_due_payment" />
+                                </group>
+                                <group>
+                                    <field name="actual_uat_due_payment" />
+                                </group>
+                                <group>
+                                    <field name="uat_done" widget="boolean_toggle" />
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Live Data">
+                            <group>
+                                <group>
+                                    <field name="live_due_payment" />
+                                </group>
+                                <group>
+                                    <field name="actual_live_due_payment" />
+                                </group>
+                                <group>
+                                    <field name="live_done" widget="boolean_toggle" />
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Installment Support" invisible="not has_installments">
+                            <group >
+                                <group string="Planed Date">
+                                    <field name="installment_date_1" invisible="not has_installments or installment_count not in ['1', '2', '3', '4']" />
+                                    <field name="installment_date_2" invisible="not has_installments or installment_count not in ['2', '3', '4']" />
+                                    <field name="installment_date_3" invisible="not has_installments or installment_count not in ['3', '4']" />
+                                    <field name="installment_date_4" invisible="not has_installments or installment_count != '4'" />
+                                </group>
+                                <group string="Actual Date">
+                                    <field name="actual_installment_date_1" invisible="not has_installments or installment_count not in ['1', '2', '3', '4']" />
+                                    <field name="actual_installment_date_2" invisible="not has_installments or installment_count not in ['2', '3', '4']" />
+                                    <field name="actual_installment_date_3" invisible="not has_installments or installment_count not in ['3', '4']" />
+                                    <field name="actual_installment_date_4" invisible="not has_installments or installment_count != '4'" />
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                     <group string="Notes">
-                        <field name="notes" nolabel="1"/>
+                        <field name="notes" nolabel="1" />
                     </group>
                 </sheet>
-                <chatter/>
+                <chatter />
             </form>
         </field>
     </record>
@@ -117,14 +133,7 @@
         </field>
     </record>
 
-    <menuitem id="menu_project_payment_root"
-              name="Payment Tracking"
-              parent="project.menu_project_config"
-              sequence="10"/>
+    <menuitem id="menu_project_payment_root" name="Payment Tracking" parent="project.menu_project_config" groups="iet_payment_reminder.payment_reminder_access" sequence="10" />
 
-    <menuitem id="menu_project_payment"
-              name="Payment Tracking"
-              parent="menu_project_payment_root"
-              action="action_project_payment"
-              sequence="1"/>
+    <menuitem id="menu_project_payment" name="Payment Tracking" parent="menu_project_payment_root" action="action_project_payment" sequence="1" />
 </odoo>

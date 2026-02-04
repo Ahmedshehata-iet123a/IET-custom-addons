@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_project_payment_wizard_form" model="ir.ui.view">
+        <field name="name">project.payment.wizard.form</field>
+        <field name="model">project.payment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Project Payments">
+                <sheet>
+                    <group readonly="1">
+                        <field name="project_id"/>
+                    </group>
+                    <group readonly="1">
+                        <group string="Main Data">
+                            <field name="project_id" options="{'no_create': True}"/>
+                            <field name="customer_id"/>
+                            <field name="has_installments" widget="boolean_toggle"/>
+                            <field name="installment_count" invisible="not has_installments"
+                                   required="has_installments"/>
+                        </group>
+                        <notebook>
+                            <page string="Contact Data">
+                                <group>
+                                    <group>
+                                        <field name="contract_payment_date"/>
+                                    </group>
+                                    <group>
+                                        <field name="actual_contract_payment_date"/>
+                                    </group>
+                                    <group>
+                                        <field name="contract_done" widget="boolean_toggle"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="UAT Data">
+                                <group>
+                                    <group>
+                                        <field name="uat_due_payment"/>
+                                    </group>
+                                    <group>
+                                        <field name="actual_uat_due_payment"/>
+                                    </group>
+                                    <group>
+                                        <field name="uat_done" widget="boolean_toggle"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Live Data">
+                                <group>
+                                    <group>
+                                        <field name="live_due_payment"/>
+                                    </group>
+                                    <group>
+                                        <field name="actual_live_due_payment"/>
+                                    </group>
+                                    <group>
+                                        <field name="live_done" widget="boolean_toggle"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Installment Support" invisible="not has_installments">
+                                <group>
+                                    <group string="Planed Date">
+                                        <field name="installment_date_1"
+                                               invisible="not has_installments or installment_count not in ['1', '2', '3', '4']"/>
+                                        <field name="installment_date_2"
+                                               invisible="not has_installments or installment_count not in ['2', '3', '4']"/>
+                                        <field name="installment_date_3"
+                                               invisible="not has_installments or installment_count not in ['3', '4']"/>
+                                        <field name="installment_date_4"
+                                               invisible="not has_installments or installment_count != '4'"/>
+                                    </group>
+                                    <group string="Actual Date">
+                                        <field name="actual_installment_date_1"
+                                               invisible="not has_installments or installment_count not in ['1', '2', '3', '4']"/>
+                                        <field name="actual_installment_date_2"
+                                               invisible="not has_installments or installment_count not in ['2', '3', '4']"/>
+                                        <field name="actual_installment_date_3"
+                                               invisible="not has_installments or installment_count not in ['3', '4']"/>
+                                        <field name="actual_installment_date_4"
+                                               invisible="not has_installments or installment_count != '4'"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                        <group string="Notes">
+                            <field name="notes" nolabel="1"/>
+                        </group>
+                    </group>
+
+                </sheet>
+                <footer>
+                    <button string="Close" class="btn-primary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

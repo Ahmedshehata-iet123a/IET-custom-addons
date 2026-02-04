@@ -17,11 +17,14 @@ class ProjectPayment(models.Model):
     )
     customer_id = fields.Many2one(
         'res.partner', string='Customer',
-        related='project_id.partner_id', store=True, readonly=True
+        related='project_id.partner_id', store=True, readonly=True,tracking=True
     )
-    contract_payment_date = fields.Date(string='Contract Payment', required=True, tracking=True)
-    uat_due_payment = fields.Date(string='UAT Due Payment', required=True, tracking=True)
-    live_due_payment = fields.Date(string='Live Due Payment', required=True, tracking=True)
+    contract_payment_date = fields.Date(string='Planed Contract Payment', tracking=True)
+    uat_due_payment = fields.Date(string='Planed UAT Due Payment', tracking=True)
+    live_due_payment = fields.Date(string='Planed Live Due Payment', tracking=True)
+    actual_contract_payment_date = fields.Date(string='Actual Contract Payment', tracking=True)
+    actual_uat_due_payment = fields.Date(string='Actual UAT Due Payment', tracking=True)
+    actual_live_due_payment = fields.Date(string='Actual Live Due Payment', tracking=True)
     notes = fields.Text(string='Notes')
 
     # -------------------- Installments --------------------
@@ -31,11 +34,15 @@ class ProjectPayment(models.Model):
         ('2', 'Semi-Annual'),
         ('3', 'Three Times'),
         ('4', 'Quarterly'),
-    ], string='Installment Count', default='1')
-    installment_date_1 = fields.Date(string='Installment Date 1')
-    installment_date_2 = fields.Date(string='Installment Date 2')
-    installment_date_3 = fields.Date(string='Installment Date 3')
-    installment_date_4 = fields.Date(string='Installment Date 4')
+    ], string='Installment Count', default='1',tracking=True)
+    installment_date_1 = fields.Date(string='Planed Installment Date 1',tracking=True)
+    installment_date_2 = fields.Date(string='Planed Installment Date 2',tracking=True)
+    installment_date_3 = fields.Date(string='Planed Installment Date 3',tracking=True)
+    installment_date_4 = fields.Date(string='Planed Installment Date 4',tracking=True)
+    actual_installment_date_1 = fields.Date(string='Actual Installment Date 1',tracking=True)
+    actual_installment_date_2 = fields.Date(string='Actual Installment Date 2',tracking=True)
+    actual_installment_date_3 = fields.Date(string='Actual Installment Date 3',tracking=True)
+    actual_installment_date_4 = fields.Date(string='Actual Installment Date 4',tracking=True)
 
     # -------------------- Notification & Snooze --------------------
     contract_notification_sent = fields.Boolean(string='Contract Notified', default=False)
@@ -51,9 +58,9 @@ class ProjectPayment(models.Model):
     live_snooze_count = fields.Integer(string='Live Snooze Count', default=0)
 
     # -------------------- Done Checkboxes --------------------
-    contract_done = fields.Boolean(string='Contract Done', default=False)
-    uat_done = fields.Boolean(string='UAT Done', default=False)
-    live_done = fields.Boolean(string='Live Done', default=False)
+    contract_done = fields.Boolean(string='Contract Done', default=False,tracking=True)
+    uat_done = fields.Boolean(string='UAT Done', default=False,tracking=True)
+    live_done = fields.Boolean(string='Live Done', default=False,tracking=True)
     contract_appear = fields.Boolean(default=False)
     uat_appear = fields.Boolean(default=False)
     live_appear = fields.Boolean(default=False)

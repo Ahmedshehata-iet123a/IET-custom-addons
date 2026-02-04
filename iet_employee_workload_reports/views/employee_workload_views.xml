@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Tree View للتقرير الرئيسي -->
     <record id="view_employee_workload_report_list" model="ir.ui.view">
         <field name="name">employee.workload.report.list</field>
         <field name="model">employee.workload.report</field>
@@ -15,7 +14,6 @@
         </field>
     </record>
 
-    <!-- Form View للتقرير الرئيسي -->
     <record id="view_employee_workload_report_form" model="ir.ui.view">
         <field name="name">employee.workload.report.form</field>
         <field name="model">employee.workload.report</field>
@@ -99,7 +97,6 @@
     </record>
 
 
-    <!-- Tree View لسطور التقرير -->
     <record id="view_employee_workload_line_list" model="ir.ui.view">
         <field name="name">employee.workload.report.line.list</field>
         <field name="model">employee.workload.report.line</field>
@@ -113,7 +110,6 @@
                 <field name="employee_id"/>
                 <field name="project_id"/>
                 <field name="project_stage_id" optional="show"/>
-                <!-- Schedule Control -->
                 <field name="planned_duration" optional="show"/>
                 <field name="days_passed" optional="show"/>
                 <field name="expected_progress" widget="percentage" optional="show"/>
@@ -125,7 +121,6 @@
                        decoration-danger="schedule_status == 'delayed'" optional="show"/>
                 <field name="department_id"/>
                 <field name="job_id"/>
-                <!--                <field name="capacity_hours" sum="Total Capacity"/>-->
                 <field name="assigned_hours" sum="Total Assigned"/>
                 <field name="load_percentage" widget="progressbar" column_invisible="1"/>
                 <field name="status" column_invisible="1"/>
@@ -140,13 +135,11 @@
         <field name="arch" type="xml">
             <graph string="Workload Analysis" type="bar" sample="1">
                 <field name="employee_id"/>
-                <!--                <field name="capacity_hours" type="measure"/>-->
                 <field name="assigned_hours" type="measure"/>
             </graph>
         </field>
     </record>
 
-    <!-- Pivot View -->
     <record id="view_employee_workload_line_pivot" model="ir.ui.view">
         <field name="name">employee.workload.report.line.pivot</field>
         <field name="model">employee.workload.report.line</field>
@@ -154,7 +147,6 @@
             <pivot string="Workload Pivot" sample="1">
                 <field name="employee_id" type="row"/>
                 <field name="department_id" type="row"/>
-                <!--                <field name="capacity_hours" type="measure"/>-->
                 <field name="assigned_hours" type="measure"/>
                 <field name="load_percentage" type="measure" column_invisible="1"/>
             </pivot>

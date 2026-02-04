@@ -7,3 +7,4 @@ class ProjectTaskType(models.Model):
     generate_tasks = fields.Boolean(string="Generate Tasks")
     required_deadline = fields.Boolean(string="Required Deadline")
     required_allocated = fields.Boolean(string="Required Allocated")
+    is_done_stage = fields.Boolean(string="Is Done Stage")

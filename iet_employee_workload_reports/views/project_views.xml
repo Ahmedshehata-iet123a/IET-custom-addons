@@ -10,4 +10,19 @@
             </xpath>
         </field>
     </record>
+    <record id="view_project_project_list_group_stage_inherit" model="ir.ui.view">
+        <field name="name">project.project.list.group.stage.inherit</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.project_list_view_group_stage"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="free_support_start_date" string="Free Support Date" widget="daterange"
+                       options='{"end_date_field": "free_support_end_date", "always_range": true}' optional="show"/>
+                <field name="free_support_end_date" column_invisible="1"/>
+                <field name="contract_project_start_date" string="Contract Support Date" widget="daterange"
+                       options='{"end_date_field": "contract_project_end_date", "always_range": true}' optional="show"/>
+                <field name="contract_project_end_date" column_invisible="1"/>
+            </field>
+        </field>
+    </record>
 </odoo>

@@ -16,7 +16,10 @@ class ProjectPlanLine(models.Model):
     task_owner = fields.Text(string='Task Owner')
     status = fields.Text(string='Status')
     comments = fields.Text(string='Comments')
-    attachments = fields.Binary(string='Attachments')
+    attachment_ids = fields.Many2many(
+        'ir.attachment',
+        string='Attachments'
+    )
     display_type = fields.Selection([
         ('line_section', 'Section'),
         ('line_note', 'Note'),

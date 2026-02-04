@@ -18,6 +18,11 @@ class ProjectTask(models.Model):
         if not self.env.context.get('skip_stage_validation') and 'stage_id' in vals:
             for task in self:
                 stage = self.env['project.task.type'].browse(vals['stage_id'])
+                if stage.is_done_stage:
+                    vals['state'] = '1_done'
+                    vals['is_closed'] = True
+                    vals['status_done'] = True
+
                 if stage.required_deadline:
                     date_deadline = vals.get('date_deadline', task.date_deadline)
                     if not date_deadline:

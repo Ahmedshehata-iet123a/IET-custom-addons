@@ -1,21 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Tree View للتقرير الرئيسي -->
     <record id="view_project_planned_actual_report_list" model="ir.ui.view">
         <field name="name">project.planned.actual.report.list</field>
         <field name="model">project.planned.actual.report</field>
         <field name="arch" type="xml">
             <list string="Planned vs Actual Reports">
                 <field name="name"/>
-<!--                <field name="date_from"/>-->
-<!--                <field name="date_to"/>-->
                 <field name="create_date"/>
             </list>
         </field>
     </record>
 
-    <!-- Form View للتقرير الرئيسي -->
     <record id="view_project_planned_actual_report_form" model="ir.ui.view">
         <field name="name">project.planned.actual.report.form</field>
         <field name="model">project.planned.actual.report</field>
@@ -31,8 +27,6 @@
                     <group>
                         <group>
                             <field name="name"/>
-<!--                            <field name="date_from"/>-->
-<!--                            <field name="date_to"/>-->
                         </group>
                         <group>
                             <field name="project_ids" widget="many2many_tags"/>
@@ -46,22 +40,9 @@
                                     <field name="project_id"/>
                                     <field name="partner_id"/>
                                     <field name="user_id"/>
-<!--                                    <field name="planned_start_date"/>-->
-<!--                                    <field name="actual_start_date"/>-->
-<!--                                    <field name="start_variance_display"/>-->
-<!--                                    <field name="planned_end_date"/>-->
-<!--                                    <field name="actual_end_date"/>-->
-<!--                                    <field name="end_variance_display"/>-->
                                     <field name="planned_hours" sum="Total Planned"/>
                                     <field name="actual_hours" sum="Total Actual"/>
                                     <field name="hours_variance_display"/>
-<!--                                    <field name="status" widget="badge"-->
-<!--                                           decoration-success="status == 'on_time' or status == 'early'"-->
-<!--                                           decoration-warning="status == 'on_track'"-->
-<!--                                           decoration-danger="status == 'delayed'"/>-->
-<!--                                    <field name="start_variance_days" column_invisible="1"/>-->
-<!--                                    <field name="end_variance_days" column_invisible="1"/>-->
-<!--                                    <field name="hours_variance" column_invisible="1"/>-->
                                 </list>
                             </field>
                         </page>
@@ -71,7 +52,6 @@
         </field>
     </record>
 
-    <!-- Search View للتقرير الرئيسي -->
     <record id="view_project_planned_actual_report_search" model="ir.ui.view">
         <field name="name">project.planned.actual.report.search</field>
         <field name="model">project.planned.actual.report</field>
@@ -90,7 +70,6 @@
         </field>
     </record>
 
-    <!-- Form View لسطور التقرير -->
     <record id="view_project_planned_actual_report_line_form" model="ir.ui.view">
         <field name="name">project.planned.actual.report.line.form</field>
         <field name="model">project.planned.actual.report.line</field>
@@ -136,41 +115,6 @@
             </form>
         </field>
     </record>
-
-    <!-- Tree View لسطور التقرير -->
-<!--    <record id="view_project_planned_actual_report_line_list" model="ir.ui.view">-->
-<!--        <field name="name">project.planned.actual.report.line.list</field>-->
-<!--        <field name="model">project.planned.actual.report.line</field>-->
-<!--        <field name="arch" type="xml">-->
-<!--            <list string="Report Lines"-->
-<!--                  decoration-success="status == 'on_time' or status == 'early'"-->
-<!--                  decoration-warning="status == 'on_track'"-->
-<!--                  decoration-danger="status == 'delayed'"-->
-<!--                  create="false" edit="false">-->
-<!--                <field name="project_id"/>-->
-<!--                <field name="partner_id"/>-->
-<!--                <field name="user_id"/>-->
-<!--                <field name="planned_start_date"/>-->
-<!--                <field name="actual_start_date"/>-->
-<!--                <field name="start_variance_display"/>-->
-<!--                <field name="planned_end_date"/>-->
-<!--                <field name="actual_end_date"/>-->
-<!--                <field name="end_variance_display"/>-->
-<!--                <field name="planned_hours" sum="Total Planned"/>-->
-<!--                <field name="actual_hours" sum="Total Actual"/>-->
-<!--                <field name="hours_variance_display"/>-->
-<!--                <field name="status" widget="badge"-->
-<!--                       decoration-success="status == 'on_time' or status == 'early'"-->
-<!--                       decoration-warning="status == 'on_track'"-->
-<!--                       decoration-danger="status == 'delayed'"/>-->
-<!--                <field name="start_variance_days" column_invisible="1"/>-->
-<!--                <field name="end_variance_days" column_invisible="1"/>-->
-<!--                <field name="hours_variance" column_invisible="1"/>-->
-<!--            </list>-->
-<!--        </field>-->
-<!--    </record>-->
-
-    <!-- Search View لسطور التقرير -->
     <record id="view_project_planned_actual_report_line_search" model="ir.ui.view">
         <field name="name">project.planned.actual.report.line.search</field>
         <field name="model">project.planned.actual.report.line</field>
@@ -204,16 +148,12 @@
             <pivot string="Planned vs Actual Analysis">
                 <field name="status" type="col"/>
                 <field name="project_id" type="row"/>
-<!--                <field name="planned_hours" type="measure"/>-->
-<!--                <field name="actual_hours" type="measure"/>-->
-<!--                <field name="hours_variance" type="measure"/>-->
                 <field name="start_variance_days" type="measure"/>
                 <field name="end_variance_days" type="measure"/>
             </pivot>
         </field>
     </record>
 
-    <!-- Graph View لسطور التقرير -->
     <record id="view_project_planned_actual_report_line_graph" model="ir.ui.view">
         <field name="name">project.planned.actual.report.line.graph</field>
         <field name="model">project.planned.actual.report.line</field>
@@ -224,7 +164,6 @@
         </field>
     </record>
 
-    <!-- Action للتقرير الرئيسي -->
     <record id="action_project_planned_actual_report" model="ir.actions.act_window">
         <field name="name">Planned vs Actual Reports</field>
         <field name="res_model">project.planned.actual.report</field>
@@ -239,7 +178,6 @@
         </field>
     </record>
 
-    <!-- Action لسطور التقرير -->
     <record id="action_project_planned_actual_report_line" model="ir.actions.act_window">
         <field name="name">Planned vs Actual Analysis</field>
         <field name="res_model">project.planned.actual.report.line</field>
