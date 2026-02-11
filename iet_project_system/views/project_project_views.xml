@@ -69,7 +69,7 @@
                             <field name="task_id" column_invisible="1" optional="show"/>
                             <field name="planned_end_date" optional="show"/>
                             <field name="actual_end_date" optional="show"/>
-                            <field name="delay_days" column_invisible="1" readonly="1" optional="show"/>
+                            <field name="delay_days" readonly="1" optional="show"/>
                             <field name="task_owner" invisible="display_type == 'line_section'" optional="show"/>
                             <field name="status_done"/>
                             <field name="status" column_invisible="1" invisible="display_type == 'line_section'" optional="show"/>

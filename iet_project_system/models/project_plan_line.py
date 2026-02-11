@@ -46,33 +46,51 @@ class ProjectPlanLine(models.Model):
 
     sequence = fields.Integer(string='Sequence', default=10)
 
-    @api.depends('planned_end_date', 'actual_end_date')
+    @api.depends('planned_end_date', 'actual_end_date', 'display_type', 'milestone_id', 'project_id.project_plan_line_ids.delay_days')
     def _compute_delay_days(self):
         for rec in self:
-            rec.delay_days = 0
-            if rec.planned_end_date and rec.actual_end_date:
-                current_date = rec.planned_end_date
-                actual_date = rec.actual_end_date
-                if actual_date > current_date:
-                    start_loop = current_date + timedelta(days=1)
-                    end_loop = actual_date
-                    sign = 1
-                elif actual_date < current_date:
-                    start_loop = actual_date + timedelta(days=1)
-                    end_loop = current_date
-                    sign = 0
-                else:
-                    # Same day
-                    continue
+            if rec.display_type == 'line_section':
+                # Sum the delay_days of all tasks belonging to this milestone
+                tasks = self.env['project.plan.line'].search([
+                    ('project_id', '=', rec.project_id.id),
+                    ('milestone_id', '=', rec.milestone_id.id),
+                    ('display_type', '=', False)
+                ])
+                rec.delay_days = sum(tasks.mapped('delay_days'))
+            else:
+                # Original Task delay logic (excluding Fri/Sat)
+                rec.delay_days = 0
+                if rec.planned_end_date and rec.actual_end_date:
+                    current_date = rec.planned_end_date
+                    actual_date = rec.actual_end_date
+                    if actual_date > current_date:
+                        start_loop = current_date + timedelta(days=1)
+                        end_loop = actual_date
+                        sign = 1
+                    elif actual_date < current_date:
+                        start_loop = actual_date + timedelta(days=1)
+                        end_loop = current_date
+                        sign = -1  # Negative delay if finished early? Or 0? User logic had 0 for early.
+                        # Actually user's provided code for early:
+                        # elif actual_date < current_date:
+                        #     start_loop = actual_date + timedelta(days=1)
+                        #     end_loop = current_date
+                        #     sign = 0
+                        # I will stick to user's provided snippet logic unless they want negative.
+                        # User snippet: sign = 0 for early.
+                        sign = 0
+                    else:
+                        # Same day
+                        continue
 
-                delay = 0
-                curr = start_loop
-                while curr <= end_loop:
-                    if curr.weekday() not in (4, 5):
-                        delay += 1
-                    curr += timedelta(days=1)
+                    delay = 0
+                    curr = start_loop
+                    while curr <= end_loop:
+                        if curr.weekday() not in (4, 5): # 4 is Friday, 5 is Saturday
+                            delay += 1
+                        curr += timedelta(days=1)
 
-                rec.delay_days = delay * sign
+                    rec.delay_days = delay * sign
 
 
 
