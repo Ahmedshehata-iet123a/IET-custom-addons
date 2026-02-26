@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_deleted_record_log_list" model="ir.ui.view">
+        <field name="name">deleted.record.log.list</field>
+        <field name="model">deleted.record.log</field>
+        <field name="arch" type="xml">
+            <list string="Deleted Records" create="false" edit="false" delete="false">
+                <field name="name"/>
+                <field name="model_name"/>
+                <field name="deleted_by_id" widget="many2one_avatar_user"/>
+                <field name="deleted_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_deleted_record_log_search" model="ir.ui.view">
+        <field name="name">deleted.record.log.search</field>
+        <field name="model">deleted.record.log</field>
+        <field name="arch" type="xml">
+            <search string="Search Deleted Records">
+                <field name="name" string="Record Name"/>
+                <field name="model_name" string="Model"/>
+                <field name="deleted_by_id" string="Deleted By"/>
+                <group expand="0" string="Group By">
+                    <filter string="Model" name="group_by_model" context="{'group_by':'model_name'}"/>
+                    <filter string="Deleted By" name="group_by_user" context="{'group_by':'deleted_by_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_deleted_record_log" model="ir.actions.act_window">
+        <field name="name">Deleted Records Log</field>
+        <field name="res_model">deleted.record.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_deleted_record_log_search"/>
+    </record>
+
+    <menuitem id="menu_deleted_record_log"
+              name="Deleted Records"
+              parent="base.menu_custom"
+              action="action_deleted_record_log"
+              sequence="50"/>
+</odoo>
