@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- List View for Project Update (Status Report) -->
+    <record id="view_project_update_status_list" model="ir.ui.view">
+        <field name="name">project.update.status.list</field>
+        <field name="model">project.update</field>
+        <field name="arch" type="xml">
+            <list string="Project Status Report" default_order="date desc" create="0" delete="0">
+                <field name="date" string="Date"/>
+                <field name="project_id" string="Project"/>
+                <field name="name" string="Update Title"/>
+                <field name="user_id" string="Author" widget="many2one_avatar_user"/>
+                <field name="status" string="Status" widget="badge"
+                    decoration-success="status == 'on_track' or status == 'done'"
+                    decoration-warning="status == 'at_risk'"
+                    decoration-danger="status == 'off_track'"
+                    decoration-info="status == 'on_hold'"/>
+                <field name="progress" string="Progress %" widget="progressbar"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action for Project Status Report -->
+    <record id="action_project_update_status" model="ir.actions.act_window">
+        <field name="name">Project Status Report</field>
+        <field name="res_model">project.update</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_project_update_status_list"/>
+        <field name="context">{'group_by': ['project_id']}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No project status updates found.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item for Project Status Report -->
+    <menuitem
+        id="menu_project_update_status"
+        name="Project Stages Report"
+        action="action_project_update_status"
+        parent="project.menu_project_report"
+        sequence="60"/>
+</odoo>
