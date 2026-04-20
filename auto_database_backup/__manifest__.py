@@ -42,7 +42,7 @@
         'wizard/dropbox_auth_code_views.xml',
     ],
     'external_dependencies': {
-        'python': ['dropbox', 'pyncclient', 'boto3', 'nextcloud-api-wrapper','paramiko']},
+        'python': ['dropbox', 'boto3', 'paramiko']},
     'images': ['static/description/banner.gif'],
     'license': 'LGPL-3',
     'installable': True,
