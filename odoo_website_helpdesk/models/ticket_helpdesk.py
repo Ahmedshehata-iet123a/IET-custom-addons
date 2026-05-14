@@ -263,7 +263,27 @@ class TicketHelpDesk(models.Model):
                     team = self.env['team.helpdesk'].search([('project_ids', 'in', project.id)], limit=1)
                     if team:
                         vals['team_id'] = team.id
-        return super(TicketHelpDesk, self).create(vals_list)
+        
+        tickets = super(TicketHelpDesk, self).create(vals_list)
+
+        # Create activities for Team Leader and Project Manager
+        todo_type = self.env.ref('mail.mail_activity_data_todo', raise_if_not_found=False)
+        if todo_type:
+            for ticket in tickets:
+                notify_users = self.env['res.users']
+                if ticket.team_id and ticket.team_id.team_lead_id:
+                    notify_users |= ticket.team_id.team_lead_id
+                if ticket.project_id and ticket.project_id.user_id:
+                    notify_users |= ticket.project_id.user_id
+                
+                for user in notify_users:
+                    ticket.activity_schedule(
+                        activity_type_id=todo_type.id,
+                        user_id=user.id,
+                        summary=_('New Ticket Created: %s') % ticket.name,
+                        note=_('A new ticket has been created: %s. Subject: %s') % (ticket.name, ticket.subject)
+                    )
+        return tickets
 
     def write(self, vals):
         """Write function"""

@@ -19,6 +19,7 @@ class Project(models.Model):
     hide_button = fields.Boolean(string="checkbox")
 
     scope_ids = fields.Many2many('project.scope', string='Scope')
+    stakeholder_ids = fields.One2many('project.stakeholder', 'project_id', string='Stakeholder Info')
     completion_percent = fields.Float(string='Completion %', compute='_compute_completion_percent', store=True)
 
     # Dynamic Schedule Thresholds
